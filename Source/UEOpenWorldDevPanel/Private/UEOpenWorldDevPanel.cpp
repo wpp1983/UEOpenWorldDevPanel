@@ -9,7 +9,7 @@
 #include "Widgets/Layout/SBox.h"
 #include "Widgets/Text/STextBlock.h"
 #include "ToolMenus.h"
-
+#include "OpenWorldDevWidget.h"
 static const FName UEOpenWorldDevPanelTabName("UEOpenWorldDevPanel");
 
 #define LOCTEXT_NAMESPACE "FUEOpenWorldDevPanelModule"
@@ -60,19 +60,15 @@ TSharedRef<SDockTab> FUEOpenWorldDevPanelModule::OnSpawnPluginTab(const FSpawnTa
 		FText::FromString(TEXT("FUEOpenWorldDevPanelModule::OnSpawnPluginTab")),
 		FText::FromString(TEXT("UEOpenWorldDevPanel.cpp"))
 		);
-
 	return SNew(SDockTab)
 		.TabRole(ETabRole::NomadTab)
 		[
 			// Put your tab content here!
 			SNew(SBox)
-			.HAlign(HAlign_Center)
-			.VAlign(VAlign_Center)
+			.HAlign(HAlign_Fill)
+			.VAlign(VAlign_Fill)
 			[
-				// SNew(STextBlock)
-				// .Text(WidgetText)
 				SNew(SOpenWorldDevWidget)
-				//.OnMouseMove(this,&SOpenWorldDevWidget::OnMouseMove)
 			]
 		];
 }

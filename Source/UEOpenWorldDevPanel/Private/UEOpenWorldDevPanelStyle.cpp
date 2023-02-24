@@ -35,6 +35,8 @@ FName FUEOpenWorldDevPanelStyle::GetStyleSetName()
 
 const FVector2D Icon16x16(16.0f, 16.0f);
 const FVector2D Icon20x20(20.0f, 20.0f);
+const FVector2D Icon40x40(20.0f, 20.0f);
+const FVector2D Icon0x16(0.0f, 0.0f);
 
 TSharedRef< FSlateStyleSet > FUEOpenWorldDevPanelStyle::Create()
 {
@@ -42,6 +44,8 @@ TSharedRef< FSlateStyleSet > FUEOpenWorldDevPanelStyle::Create()
 	Style->SetContentRoot(IPluginManager::Get().FindPlugin("UEOpenWorldDevPanel")->GetBaseDir() / TEXT("Resources"));
 
 	Style->Set("UEOpenWorldDevPanel.OpenPluginWindow", new IMAGE_BRUSH_SVG(TEXT("PlaceholderButtonIcon"), Icon20x20));
+	Style->Set("OpenWorldDevPannle.Monster", new IMAGE_BRUSH(TEXT("Icon128"), Icon20x20));
+	Style->Set("OpenWorldDevPannle.Boss", new IMAGE_BRUSH(TEXT("BlueCycle"), Icon20x20));
 
 	return Style;
 }
