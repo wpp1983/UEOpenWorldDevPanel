@@ -6,6 +6,8 @@ public class UEOpenWorldDevPanel : ModuleRules
 {
 	public UEOpenWorldDevPanel(ReadOnlyTargetRules Target) : base(Target)
 	{
+		OptimizeCode = CodeOptimization.Never;
+		
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
 		
 		PublicIncludePaths.AddRange(
@@ -43,8 +45,10 @@ public class UEOpenWorldDevPanel : ModuleRules
 				"Engine",
 				"Slate",
 				"SlateCore",
-				"EditorStyle"
+				"EditorStyle",
 				// ... add private dependencies that you statically link with here ...	
+				"JsonUtilities",
+				"Json"
 			}
 			);
 		
