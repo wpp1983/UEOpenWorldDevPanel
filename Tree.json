@@ -5,12 +5,14 @@
 			"IconColor": "(R=1.000000,G=0.000000,B=0.000000,A=1.000000)",
 			"IconType": 1,
 			"IconPositions": [],
+			"CheckBoxState": 0,
 			"Children": [
 				{
 					"DisplayName": "Child1",
 					"IconColor": "(R=0.000000,G=1.000000,B=0.000000,A=1.000000)",
 					"IconType": 2,
 					"IconPositions": [],
+					"CheckBoxState": 0,
 					"Children": []
 				},
 				{
@@ -18,6 +20,7 @@
 					"IconColor": "(R=0.000000,G=0.000000,B=1.000000,A=1.000000)",
 					"IconType": 3,
 					"IconPositions": [],
+					"CheckBoxState": 0,
 					"Children": []
 				}
 			]
@@ -27,12 +30,14 @@
 			"IconColor": "(R=1.000000,G=1.000000,B=1.000000,A=1.000000)",
 			"IconType": 1,
 			"IconPositions": [],
+			"CheckBoxState": 0,
 			"Children": [
 				{
 					"DisplayName": "Child1",
 					"IconColor": "(R=1.000000,G=0.000000,B=0.000000,A=1.000000)",
 					"IconType": 2,
 					"IconPositions": [],
+					"CheckBoxState": 0,
 					"Children": []
 				},
 				{
@@ -40,6 +45,7 @@
 					"IconColor": "(R=0.000000,G=1.000000,B=0.000000,A=1.000000)",
 					"IconType": 3,
 					"IconPositions": [],
+					"CheckBoxState": 0,
 					"Children": []
 				},
 				{
@@ -47,6 +53,7 @@
 					"IconColor": "(R=0.000000,G=0.000000,B=1.000000,A=1.000000)",
 					"IconType": 4,
 					"IconPositions": [],
+					"CheckBoxState": 0,
 					"Children": []
 				}
 			]

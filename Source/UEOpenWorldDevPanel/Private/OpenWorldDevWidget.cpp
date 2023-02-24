@@ -1,6 +1,7 @@
 ﻿#include "OpenWorldDevWidget.h"
 
 #include "OpenWorldDevTextureWidget.h"
+#include "SOpenWorldTreeWidget.h"
 
 #include "AssetRegistry/AssetRegistryModule.h"
 
@@ -14,7 +15,7 @@ SOpenWorldDevWidget::SOpenWorldDevWidget()
 
 void SOpenWorldDevWidget::Construct(const FArguments& InArgs)
 {
-
+	SAssignNew(OpenWorldDevTreeWidget,SOpenWorldTreeWidget);
 	SAssignNew(OpenWorldDevTextureWidget,SOpenWorldDevTextureWidget);
 	ChildSlot
 	[
@@ -30,26 +31,21 @@ void SOpenWorldDevWidget::Construct(const FArguments& InArgs)
 			.HAlign(HAlign_Fill)
 			.FillHeight(1)
 			[
-				SNew(SHorizontalBox)
-				+SHorizontalBox::Slot()
-				.AutoWidth()
+				SNew(SSplitter)
+			    .Orientation(Orient_Horizontal)
+				+SSplitter::Slot()
+				.Value(0.3f)
 				[
-					SNew(SButton)
-					.Text(FText::FromString("Capture World To 2DTextrue"))
-					.OnClicked(OpenWorldDevTextureWidget.Get(),&SOpenWorldDevTextureWidget::CaptureWorldTo2D)
+					OpenWorldDevTreeWidget.ToSharedRef()
 				]
-				+SHorizontalBox::Slot()
-				.FillWidth(1)
-				.VAlign(VAlign_Fill)
-				.HAlign(HAlign_Fill)
+				+SSplitter::Slot()
+				.Value(0.7f)
 				[
 					OpenWorldDevTextureWidget.ToSharedRef()
 				]
 			]
 		]
 	];
-
-
 }
 SOpenWorldDevWidget::~SOpenWorldDevWidget()
 {
