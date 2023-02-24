@@ -47,6 +47,21 @@ TSharedRef< FSlateStyleSet > FUEOpenWorldDevPanelStyle::Create()
 	Style->Set("OpenWorldDevPannle.Monster", new IMAGE_BRUSH(TEXT("Icon128"), Icon20x20));
 	Style->Set("OpenWorldDevPannle.Boss", new IMAGE_BRUSH(TEXT("BlueCycle"), Icon20x20));
 
+
+	const FButtonStyle Button = FButtonStyle()
+			.SetNormal(BOX_BRUSH(TEXT("Icon128"), Icon20x20))
+			.SetHovered(BOX_BRUSH(TEXT("BlueCycle"), Icon20x20))
+			.SetPressed(BOX_BRUSH(TEXT("BlueCycle"), Icon20x20));
+			{
+				Style->Set("OpenWorldDevPannle.Button",Button);
+			}
+			// .SetNormalPadding(FMargin(2, 2, 2, 2))
+			// .SetPressedPadding(FMargin(2, 3, 2, 1))
+			// .SetNormalForeground(InvertedForeground)
+			// .SetPressedForeground(InvertedForeground)
+			// .SetHoveredForeground(InvertedForeground)
+			// .SetDisabledForeground(InvertedForeground);
+	
 	return Style;
 }
 

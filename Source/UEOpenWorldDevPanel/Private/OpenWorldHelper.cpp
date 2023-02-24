@@ -10,7 +10,7 @@ FOpenWorldHelper* FOpenWorldHelper::_Instance = nullptr;
 
 FString FOpenWorldHelper::GetJsonFilePath()
 {
-	FString JsonFilePath = FPaths::ProjectPluginsDir() + "UEOpenWorldDevPanel/Tree.json";
+	FString JsonFilePath = FPaths::ProjectPluginsDir() + "UEOpenWorldDevPanel/Resources/Tree.json";
 
 	return JsonFilePath;
 }

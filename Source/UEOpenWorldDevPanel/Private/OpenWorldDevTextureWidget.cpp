@@ -1,6 +1,7 @@
 ﻿#include "OpenWorldDevTextureWidget.h"
 
 #include "OpenWorldDevWidget.h"
+#include "UEOpenWorldDevPanelCommands.h"
 #include "UEOpenWorldDevPanelStyle.h"
 #include "AssetRegistry/AssetRegistryModule.h"
 #include "Components/SceneCaptureComponent2D.h"
@@ -12,24 +13,16 @@
 #include "WorldPartition/WorldPartitionMiniMap.h"
 #include "WorldPartition/WorldPartitionMiniMapHelper.h"
 #include "WorldPartition/WorldPartitionMiniMapVolume.h"
+#include "Fonts/FontMeasure.h"
+#include "LevelEditorViewport.h"
+#include "OpenWorldHelper.h"
+#include "Styling/SlateStyleMacros.h"
 
 SOpenWorldDevTextureWidget::SOpenWorldDevTextureWidget()
+	:CommandList(MakeShareable(new FUICommandList))
 {
-	TArray<TPair<EIconType,FVector2D>> Items;
-	TPair<EIconType,FVector2D> Item;
-	Item.Key = EIconType::Boss;
-	Item.Value = FVector2d(2000);
-	Items.Add(Item);
-
-	Item.Key = EIconType::Boss;
-	Item.Value = FVector2d(20000,7666);
-	Items.Add(Item);
-
-	Item.Key = EIconType::Monster;
-	Item.Value = FVector2d(2000,800);
-	Items.Add(Item);
-	NeedToPaint.Add("zzx",Items);
-
+	RootTreeItems.Empty();
+	FOpenWorldHelper::ReadFromJsonFile(RootTreeItems, FOpenWorldHelper::GetJsonFilePath());
 }
 
 void SOpenWorldDevTextureWidget::Construct(const FArguments& InArgs)
@@ -83,10 +76,16 @@ void SOpenWorldDevTextureWidget::Construct(const FArguments& InArgs)
 	// BaseMapTexture 
 	// Bind commands
 
+	const FUEOpenWorldDevPanelCommands& Commands = FUEOpenWorldDevPanelCommands::Get();
+	FUICommandList& ActionList = *CommandList;
+	ActionList.MapAction(Commands.MoveCameraHere, FExecuteAction::CreateSP(this, &SOpenWorldDevTextureWidget::MoveCameraHere));
 	this->SetOnMouseMove(FPointerEventHandler::CreateSP(this,&SOpenWorldDevTextureWidget::OnMouseMove));
 	this->SetOnMouseButtonDown(FPointerEventHandler::CreateSP(this,&SOpenWorldDevTextureWidget::OnMouseButtonDown));
 	this->SetOnMouseButtonDown(FPointerEventHandler::CreateSP(this,&SOpenWorldDevTextureWidget::OnMouseButtonUp));
+	FOpenWorldHelper::Get()->TreeDataChanged.AddRaw(this, &SOpenWorldDevTextureWidget::OnTreeDataChanged);
+
 }
+
 SOpenWorldDevTextureWidget::~SOpenWorldDevTextureWidget()
 {
 	
@@ -102,7 +101,8 @@ FReply SOpenWorldDevTextureWidget::OnMouseButtonDown(const FGeometry& MyGeometry
 
 	TotalMouseDelta = 0;
 
-	if (bIsLeftMouseButtonEffecting || bIsMiddleMouseButtonEffecting || bIsRightMouseButtonEffecting)
+	// if (bIsLeftMouseButtonEffecting || bIsMiddleMouseButtonEffecting || bIsRightMouseButtonEffecting)
+	if (bIsLeftMouseButtonEffecting || bIsRightMouseButtonEffecting)
 	{
 		FReply ReplyState = FReply::Handled();
 		ReplyState.CaptureMouse(SharedThis(this));
@@ -113,18 +113,22 @@ FReply SOpenWorldDevTextureWidget::OnMouseButtonDown(const FGeometry& MyGeometry
 			{
 				// ClearSelection();
 			}
-
+			SelectionStart = MouseCursorPosWorld;
+			SelectionEnd = SelectionStart;
+			// SelectBox.Init();
+			// SelectBoxGridSnapped.Init();
 		
 		}
 
-		if (bIsMiddleMouseButtonEffecting)
-		{
-		}
+		// if (bIsMiddleMouseButtonEffecting)
+		// {
+		// 	MeasureStart = MeasureEnd = MouseCursorPosWorld;
+		// }
 
 		return ReplyState;
 	}
 
-	return FReply::Unhandled();
+	return FReply::Handled();
 }
 
 FReply SOpenWorldDevTextureWidget::OnMouseButtonUp(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
@@ -138,8 +142,8 @@ FReply SOpenWorldDevTextureWidget::OnMouseButtonUp(const FGeometry& MyGeometry, 
 		const bool bIsMiddleMouseButtonDown = MouseEvent.IsMouseButtonDown(EKeys::MiddleMouseButton);
 	
 		TotalMouseDelta = 0;
-	
-		if (bIsLeftMouseButtonEffecting || bIsMiddleMouseButtonEffecting || bIsRightMouseButtonEffecting)
+//		if (bIsLeftMouseButtonEffecting || bIsMiddleMouseButtonEffecting || bIsRightMouseButtonEffecting)
+		if (bIsLeftMouseButtonEffecting || bIsRightMouseButtonEffecting)
 		{
 			FReply ReplyState = FReply::Handled();
 	
@@ -149,7 +153,45 @@ FReply SOpenWorldDevTextureWidget::OnMouseButtonUp(const FGeometry& MyGeometry, 
 	
 			if (!bHasMouseCapture && bIsRightMouseButtonEffecting)
 			{			
+				// if (HoveredLoaderInterface.IsValid() && !SelectedLoaderInterfaces.Contains(HoveredLoaderInterface))
+				// {
+				// 	SelectedLoaderInterfaces.Reset();
+				// 	SelectedLoaderInterfaces.Add(HoveredLoaderInterface);
+				// }
+			
+				FMenuBuilder MenuBuilder(true, CommandList);
 				
+				const FUEOpenWorldDevPanelCommands& Commands = FUEOpenWorldDevPanelCommands::Get();
+				
+				// if (!GetDefault<FUEOpenWorldDevPanelCommands>())//->bDisableLoadingInEditor
+				// {
+				// 	MenuBuilder.BeginSection(NAME_None, LOCTEXT("WorldPartitionSelection", "Selection"));
+				// 	MenuBuilder.AddMenuEntry(Commands.CreateRegionFromSelection);
+				// 	MenuBuilder.AddMenuSeparator();
+				// 	MenuBuilder.AddMenuEntry(Commands.LoadSelectedRegions);
+				// 	MenuBuilder.AddMenuEntry(Commands.UnloadSelectedRegions);
+				// 	MenuBuilder.AddMenuSeparator();
+				// 	MenuBuilder.AddMenuEntry(Commands.ConvertSelectedRegionsToActors);
+				// 	MenuBuilder.EndSection();
+				// }
+				
+				MenuBuilder.BeginSection(NAME_None, FText::FromString("OpenWorldDevPannelMisc"));
+				MenuBuilder.AddMenuEntry(Commands.MoveCameraHere);
+				
+				// if (!GetDefault<UWorldPartitionEditorSettings>()->bDisablePIE)
+				// {
+				// 	MenuBuilder.AddMenuEntry(Commands.PlayFromHere);
+				// }
+				//
+				// if (!GetDefault<UWorldPartitionEditorSettings>()->bDisableLoadingInEditor)
+				// {
+				// 	MenuBuilder.AddMenuEntry(Commands.LoadFromHere);
+				// }
+				MenuBuilder.EndSection();			
+
+				FWidgetPath WidgetPath = MouseEvent.GetEventPath() != nullptr ? *MouseEvent.GetEventPath() : FWidgetPath();
+				FSlateApplication::Get().PushMenu(AsShared(), WidgetPath, MenuBuilder.MakeWidget(), MouseEvent.GetScreenSpacePosition(), FPopupTransitionEffect(FPopupTransitionEffect::ContextMenu));
+
 			}
 	
 			if (bIsLeftMouseButtonEffecting)
@@ -162,10 +204,10 @@ FReply SOpenWorldDevTextureWidget::OnMouseButtonUp(const FGeometry& MyGeometry, 
 				bIsPanning = false;
 			}
 	
-			if (bIsMiddleMouseButtonEffecting)
-			{
-				bIsMeasuring = false;
-			}
+			// if (bIsMiddleMouseButtonEffecting)
+			// {
+			// 	bIsMeasuring = false;
+			// }
 	
 			if (HasMouseCapture() && !bIsDragSelecting && !bIsPanning && !bIsMeasuring)
 			{
@@ -175,7 +217,7 @@ FReply SOpenWorldDevTextureWidget::OnMouseButtonUp(const FGeometry& MyGeometry, 
 			return ReplyState;
 		}
 	
-		return FReply::Unhandled();
+		return FReply::Handled();
 	}
 }
 
@@ -196,7 +238,6 @@ void SOpenWorldDevTextureWidget::UpdateTransform() const
 
 int32 SOpenWorldDevTextureWidget::OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const
 {
-
 	if (BaseMapTexture)
 	{
 		WorldMiniMapBounds = FBox2D(FVector2D(WorldBound.Min), FVector2D(WorldBound.Max));
@@ -254,6 +295,10 @@ const FSlateBrush *GetBrushByIconType(EIconType IconType)
 	{
 		case EIconType::Monster : return FUEOpenWorldDevPanelStyle::Get().GetBrush("OpenWorldDevPannle.Monster");break;;
 		case EIconType::Boss : return FUEOpenWorldDevPanelStyle::Get().GetBrush("OpenWorldDevPannle.Boss"); break;
+		case EIconType::ButtonIcon : return FUEOpenWorldDevPanelStyle::Get().GetBrush("OpenWorldDevPannle.Button"); break;
+		case EIconType::Test1 : return FUEOpenWorldDevPanelStyle::Get().GetBrush("OpenWorldDevPannle.Monster");break;
+		case EIconType::Test2 : return FUEOpenWorldDevPanelStyle::Get().GetBrush("OpenWorldDevPannle.Boss");break;
+
 		default:return nullptr;
 	}
 }
@@ -264,30 +309,52 @@ int32 SOpenWorldDevTextureWidget::PaintActors(const FGeometry& AllottedGeometry,
 		WorldToScreen.TransformPoint(WorldMiniMapBounds.Min),
 		WorldToScreen.TransformPoint(WorldMiniMapBounds.Max)
 	);
-	for(auto PaintGourp : NeedToPaint)
+	for(auto item : RootTreeItems)
 	{
-		for(auto Item : PaintGourp.Value)
+		if(item->CheckBoxState != ECheckBoxState::Unchecked)
 		{
-			const FSlateBrush *Brush = GetBrushByIconType(Item.Key);
-			FVector2d	WorldPositions = FVector2d(0.0);
-			WorldPositions = Item.Value;
-
-			FVector2d RelativeNormalPosition = (WorldPositions - WorldMiniMapBounds.Min)/((WorldMiniMapBounds.Max - WorldMiniMapBounds.Min));
+			for(auto child : item->GetChildren())
+			{
+				if(child->CheckBoxState == ECheckBoxState::Checked)
+					for(auto pos : child->IconPostions)
+					{
+						const FSlateBrush *Brush = GetBrushByIconType(EIconType(child->IconType));
 	
-			FVector2d IconScreenSize = (MinimapBounds.Max - MinimapBounds.Min) * 0.01; 
-			const FPaintGeometry WorldImageGeometry = AllottedGeometry.ToPaintGeometry(
-			MinimapBounds.Min + RelativeNormalPosition * (MinimapBounds.Max - MinimapBounds.Min) - IconScreenSize/2,
-			IconScreenSize);
-			FSlateDrawElement::MakeBox(
-					OutDrawElements,
-					LayerId-1,
-					WorldImageGeometry,
-					Brush,
-					ESlateDrawEffect::None,
-					FLinearColor::White);
-			
+						FVector2d	WorldPositions = FVector2d(0.0);
+						WorldPositions = FVector2d(pos.X,pos.Y);
+	
+						FVector2d RelativeNormalPosition = (WorldPositions - WorldMiniMapBounds.Min)/((WorldMiniMapBounds.Max - WorldMiniMapBounds.Min));
+		
+						FVector2d IconScreenSize = (MinimapBounds.Max - MinimapBounds.Min) * 0.01;
+						// IconScreenSize.X =  FMath::Clamp(IconScreenSize.X,IconMinSize.X,IconMaxSize.X);
+						// IconScreenSize.Y =  FMath::Clamp(IconScreenSize.Y,IconMinSize.Y,IconMaxSize.Y);
+	
+						const FPaintGeometry WorldImageGeometry = AllottedGeometry.ToPaintGeometry(
+						MinimapBounds.Min + RelativeNormalPosition * (MinimapBounds.Max - MinimapBounds.Min) - IconScreenSize/2,
+						IconScreenSize);
+				
+						FSlateDrawElement::MakeBox(
+								OutDrawElements,
+								LayerId-1,
+								WorldImageGeometry,
+								Brush,
+								ESlateDrawEffect::None,
+								FLinearColor::White);
+					}
+			}
 		}
 	}
+	FLinearColor BackgroundColor = FLinearColor::Black.CopyWithNewOpacity(0.35f);
+	FText InstructionText = FText::FromString(FString::Format(TEXT("X: {0}\nY: {1}"),{MouseCursorPosWorld.X,MouseCursorPosWorld.Y}));
+	const FSlateBrush*   WhiteBrush = FAppStyle::GetBrush("WhiteBrush");
+	const TSharedRef<FSlateFontMeasure> FontMeasure = FSlateApplication::Get().GetRenderer()->GetFontMeasureService();
+	const FSlateFontInfo FontInfo = FCoreStyle::Get().GetFontStyle("FontAwesome.13");
+	const FVector2D LabelSize = FontMeasure->Measure(InstructionText, FontInfo);
+	const FVector2D GeometrySize = AllottedGeometry.GetLocalSize();
+	const FVector2D LabelOffset = FVector2D((GeometrySize.X - LabelSize.X) / 2.f, (GeometrySize.Y - LabelSize.Y) / 2.f);
+	const FPaintGeometry LabelGeometry = AllottedGeometry.ToPaintGeometry(FSlateLayoutTransform(MouseCursorPos));
+
+	FSlateDrawElement::MakeText(OutDrawElements, LayerId, LabelGeometry, InstructionText, FontInfo);
 	return  LayerId;
 }
 void SOpenWorldDevTextureWidget::CustomPaint(FString key, EIconType Icon, FVector2d WorldPositions)
@@ -301,15 +368,37 @@ void SOpenWorldDevTextureWidget::CustomPaint(FString key, EIconType Icon, TArray
 	
 }
 
+void SOpenWorldDevTextureWidget::MoveCameraHere()
+{
+	{
+		FVector WorldLocation = FVector(MouseCursorPosWorld, 0);
 
+		FHitResult HitResult;
+		const FVector TraceStart(WorldLocation.X, WorldLocation.Y, HALF_WORLD_MAX);
+		const FVector TraceEnd(WorldLocation.X, WorldLocation.Y, -HALF_WORLD_MAX);
+		const FCollisionQueryParams TraceParams(SCENE_QUERY_STAT(SWorldPartitionEditorGrid2D_MoveCameraHere), true);
+		const bool bHitResultValid = GEditor->GetWorld()->LineTraceSingleByChannel(HitResult, TraceStart, TraceEnd, ECC_WorldStatic, TraceParams);
+
+		for (FLevelEditorViewportClient* LevelVC : GEditor->GetLevelViewportClients())
+		{
+			WorldLocation.Z = bHitResultValid ? HitResult.ImpactPoint.Z + 1000.0f : LevelVC->GetViewLocation().Z;
+
+			LevelVC->SetViewLocation(WorldLocation);
+			LevelVC->Invalidate();
+
+			FEditorDelegates::OnEditorCameraMoved.Broadcast(WorldLocation, LevelVC->GetViewRotation(), LevelVC->ViewportType, LevelVC->ViewIndex);
+		}
+	}
+}
 FReply SOpenWorldDevTextureWidget::OnMouseMove(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
 {
 	
 	const FVector2D CursorDelta = MouseEvent.GetCursorDelta();
 
+	
 	MouseCursorPos = MyGeometry.AbsoluteToLocal(MouseEvent.GetScreenSpacePosition());
 	MouseCursorPosWorld = ScreenToWorld.TransformPoint(MouseCursorPos);
-
+	MouseCurentPosition = MouseCursorPosWorld;
 	if (HasMouseCapture())
 	{
 		TotalMouseDelta += CursorDelta.Size();
@@ -319,18 +408,18 @@ FReply SOpenWorldDevTextureWidget::OnMouseMove(const FGeometry& MyGeometry, cons
 		const bool bIsMiddleMouseButtonDown = MouseEvent.IsMouseButtonDown(EKeys::MiddleMouseButton);
 		// const bool bIsDragTrigger = IsInteractive() && (TotalMouseDelta > FSlateApplication::Get().GetDragTriggerDistance());
 
-		if (bIsMiddleMouseButtonDown)
-		{
-			if (!bIsMeasuring)
-			{
-				bIsMeasuring = true;
-			}
-
-			if (bIsMeasuring)
-			{
-				MeasureEnd = MouseCursorPosWorld;
-			}
-		}
+		// if (bIsMiddleMouseButtonDown)
+		// {
+		// 	if (!bIsMeasuring)
+		// 	{
+		// 		bIsMeasuring = true;
+		// 	}
+		//
+		// 	if (bIsMeasuring)
+		// 	{
+		// 		MeasureEnd = MouseCursorPosWorld;
+		// 	}
+		// }
 
 		if (bIsLeftMouseButtonDown)
 		{
@@ -364,7 +453,7 @@ FReply SOpenWorldDevTextureWidget::OnMouseMove(const FGeometry& MyGeometry, cons
 		}
 	}
 
-	return FReply::Unhandled();
+	return FReply::Handled();
 }
 
 
@@ -536,3 +625,17 @@ FReply SOpenWorldDevTextureWidget::OnMouseWheel(const FGeometry& MyGeometry, con
 }
 
 
+FReply SOpenWorldDevTextureWidget::OnMouseButtonDoubleClick(const FGeometry& InMyGeometry, const FPointerEvent& InMouseEvent)
+{
+	MoveCameraHere();
+	return FReply::Handled();
+}
+
+void SOpenWorldDevTextureWidget::OnTreeDataChanged(FString InTag)
+{
+	if (InTag == "Tree")
+	{
+		RootTreeItems.Empty();
+		FOpenWorldHelper::ReadFromJsonFile(RootTreeItems, FOpenWorldHelper::GetJsonFilePath());
+	}
+}
