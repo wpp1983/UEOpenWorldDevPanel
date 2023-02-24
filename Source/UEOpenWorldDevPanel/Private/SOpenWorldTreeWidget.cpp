@@ -3,6 +3,10 @@
 #include "Widgets/Input/SSearchBox.h"
 
 #define LOCTEXT_NAMESPACE "SOpenWorldTreeWidget"
+SOpenWorldTreeWidget::~SOpenWorldTreeWidget()
+{
+	FOpenWorldHelper::Get()->TreeDataChanged.RemoveAll(this);
+}
 void SOpenWorldTreeWidget::Construct(const FArguments& InArgs)
 {
 	ChildSlot
@@ -22,16 +26,18 @@ void SOpenWorldTreeWidget::Construct(const FArguments& InArgs)
 			SAssignNew(TreeView, STreeView<TSharedPtr<FOpenWorldTreeItem>>)
 			.ItemHeight(20.0f)
 			.SelectionMode(ESelectionMode::Single)
-			.TreeItemsSource(&FilterTreeItems)
+			.TreeItemsSource(&RootTreeItems)
 			.OnGetChildren(this, &SOpenWorldTreeWidget::OnGetChildren)
 			.OnGenerateRow(this, &SOpenWorldTreeWidget::OnGenerateRow)
-			.OnExpansionChanged(this, &SOpenWorldTreeWidget::OnExpansionChanged)
 		]
 	];
 
 	//FOpenWorldHelper::Test();
-	//FOpenWorldHelper::ReadFromJsonFile(RootTreeItems, FOpenWorldHelper::GetJsonFilePath());
+	RootTreeItems.Empty();
+	FOpenWorldHelper::ReadFromJsonFile(RootTreeItems, FOpenWorldHelper::GetJsonFilePath());
 	RequestTreeRefresh();
+
+	FOpenWorldHelper::Get()->TreeDataChanged.AddRaw(this, &SOpenWorldTreeWidget::OnTreeDataChanged);
 }
 
 void SOpenWorldTreeWidget::OnGetChildren(TSharedPtr<FOpenWorldTreeItem> InItem, TArray< TSharedPtr<FOpenWorldTreeItem> >& OutItems)
@@ -73,24 +79,8 @@ TSharedRef<ITableRow> SOpenWorldTreeWidget::OnGenerateRow(TSharedPtr<FOpenWorldT
 	];
 }
 
-
-void SOpenWorldTreeWidget::OnExpansionChanged(TSharedPtr<FOpenWorldTreeItem> TreeItem, bool bIsExpanded)
-{
-	TreeItem->IsShouldExpandItem = bIsExpanded;
-}
-
 void SOpenWorldTreeWidget::RequestTreeRefresh()
 {
-	FilterTreeItems.Empty();
-	for (int Index = 0; Index < RootTreeItems.Num(); Index++)
-	{
-		TSharedPtr<FOpenWorldTreeItem> FilterItem = RootTreeItems[Index]->CreateFilterItem(nullptr, FilterString);
-		if (FilterItem)
-		{
-			FilterTreeItems.Add(FilterItem);
-		}
-	}
-
 	if (TreeView.IsValid())
 	{
 		TreeView->RequestTreeRefresh();
@@ -111,10 +101,17 @@ void SOpenWorldTreeWidget::OnFilterStringChanged(const FText& InFilterString)
 
 void SOpenWorldTreeWidget::CollectCheckedItems()
 {
-	TArray<TSharedPtr<FOpenWorldTreeItem>> CheckedItems;
-	for (auto& Item : FilterTreeItems)
+	FOpenWorldHelper::WriteToJsonFile(RootTreeItems, FOpenWorldHelper::GetJsonFilePath());
+	FOpenWorldHelper::Get()->Broadcast("Tree");
+}
+
+void SOpenWorldTreeWidget::OnTreeDataChanged(FString InTag)
+{
+	if (InTag == "Map")
 	{
-		Item->GetCheckedItems(CheckedItems);
+		RootTreeItems.Empty();
+		FOpenWorldHelper::ReadFromJsonFile(RootTreeItems, FOpenWorldHelper::GetJsonFilePath());
+		RequestTreeRefresh();
 	}
 }
 #undef LOCTEXT_NAMESPACE

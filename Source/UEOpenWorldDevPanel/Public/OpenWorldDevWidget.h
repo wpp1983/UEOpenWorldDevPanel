@@ -21,5 +21,6 @@ public:
 	~SOpenWorldDevWidget();
 
 protected:
+	TSharedPtr<class SOpenWorldTreeWidget> OpenWorldDevTreeWidget;
 	TSharedPtr<class SOpenWorldDevTextureWidget> OpenWorldDevTextureWidget;
 };
