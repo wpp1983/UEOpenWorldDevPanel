@@ -1,0 +1,55 @@
+{
+	"Tree": [
+		{
+			"DisplayName": "Parent1",
+			"IconColor": "(R=1.000000,G=0.000000,B=0.000000,A=1.000000)",
+			"IconType": 1,
+			"IconPositions": [],
+			"Children": [
+				{
+					"DisplayName": "Child1",
+					"IconColor": "(R=0.000000,G=1.000000,B=0.000000,A=1.000000)",
+					"IconType": 2,
+					"IconPositions": [],
+					"Children": []
+				},
+				{
+					"DisplayName": "Child2",
+					"IconColor": "(R=0.000000,G=0.000000,B=1.000000,A=1.000000)",
+					"IconType": 3,
+					"IconPositions": [],
+					"Children": []
+				}
+			]
+		},
+		{
+			"DisplayName": "Parent2",
+			"IconColor": "(R=1.000000,G=1.000000,B=1.000000,A=1.000000)",
+			"IconType": 1,
+			"IconPositions": [],
+			"Children": [
+				{
+					"DisplayName": "Child1",
+					"IconColor": "(R=1.000000,G=0.000000,B=0.000000,A=1.000000)",
+					"IconType": 2,
+					"IconPositions": [],
+					"Children": []
+				},
+				{
+					"DisplayName": "Child2",
+					"IconColor": "(R=0.000000,G=1.000000,B=0.000000,A=1.000000)",
+					"IconType": 3,
+					"IconPositions": [],
+					"Children": []
+				},
+				{
+					"DisplayName": "Child3",
+					"IconColor": "(R=0.000000,G=0.000000,B=1.000000,A=1.000000)",
+					"IconType": 4,
+					"IconPositions": [],
+					"Children": []
+				}
+			]
+		}
+	]
+}
