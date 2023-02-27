@@ -12,6 +12,21 @@ enum EIconType
 	Test2
 };
 
+struct FDrawIconInfo : public TSharedFromThis<FDrawIconInfo>
+{
+public:
+	FDrawIconInfo(FVector Pos = FVector(0), FVector2d InScreenPosition = FVector2d(0), FBox2d InWorldIconBound = FBox2d(), TSharedPtr<FOpenWorldTreeItem> Item = nullptr)
+		:WorldPosition(Pos),ScreenPosition(InScreenPosition),WorldIconBound(InWorldIconBound),ItemPtr(Item)
+	{
+	};
+	~FDrawIconInfo(){};
+
+	FVector WorldPosition;
+	FVector2d ScreenPosition;
+	FBox2d WorldIconBound;
+	TSharedPtr<FOpenWorldTreeItem> ItemPtr;
+};
+
 class SOpenWorldDevTextureWidget :public SCompoundWidget
 {
 	SLATE_BEGIN_ARGS(SOpenWorldDevTextureWidget)
@@ -38,9 +53,9 @@ public:
 	virtual FReply OnMouseWheel(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent) override;
 	virtual FReply OnMouseButtonDoubleClick(const FGeometry& InMyGeometry, const FPointerEvent& InMouseEvent) override;
 	void MoveCameraHere();
+	void OnDeleteSelected();
 	FReply CaptureWorldTo2D() const;
 	void OnTreeDataChanged(FString InTag);
-
 protected:
 	
 	// virtual int32 OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const override;
@@ -50,7 +65,8 @@ protected:
 	virtual void CustomPaint(FString key, EIconType Icon, FVector2d WorldPositions);
 	void UpdateTransform()const;
 	void CalTopViewOfWorld(FMatrix& OutProjectionMatrix, const FBox& WorldBox, uint32 ViewportWidth, uint32 ViewportHeight) const;
-
+	void GetSelectedItems(FVector2D InMouseCursorPosWorld);
+	
 	UPackage* CreateNewPackage(FString AssetPath = "/Game/",FString FileName = "BaseMapTexture") const;
 
 	const TSharedRef<FUICommandList> CommandList;
@@ -84,5 +100,7 @@ protected:
 	FVector2d IconMinSize = FVector2d(5);
 	FVector2d IconMaxSize = FVector2d(10);
 	TArray<TSharedPtr<FOpenWorldTreeItem>> RootTreeItems;
+	TArray<FDrawIconInfo> SelectedItems;
+	mutable  TArray<FDrawIconInfo> DisplayedItems;
 
 };
