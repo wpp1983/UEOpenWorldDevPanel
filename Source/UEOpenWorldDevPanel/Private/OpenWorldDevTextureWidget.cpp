@@ -88,7 +88,7 @@ void SOpenWorldDevTextureWidget::Construct(const FArguments& InArgs)
 
 SOpenWorldDevTextureWidget::~SOpenWorldDevTextureWidget()
 {
-	
+	FOpenWorldHelper::Get()->TreeDataChanged.RemoveAll(this);
 }
 FReply SOpenWorldDevTextureWidget::OnMouseButtonDown(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
 {
@@ -332,7 +332,7 @@ int32 SOpenWorldDevTextureWidget::PaintActors(const FGeometry& AllottedGeometry,
 						const FPaintGeometry WorldImageGeometry = AllottedGeometry.ToPaintGeometry(
 						MinimapBounds.Min + RelativeNormalPosition * (MinimapBounds.Max - MinimapBounds.Min) - IconScreenSize/2,
 						IconScreenSize);
-				
+						
 						FSlateDrawElement::MakeBox(
 								OutDrawElements,
 								LayerId-1,
