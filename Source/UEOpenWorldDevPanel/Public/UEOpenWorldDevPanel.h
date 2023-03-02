@@ -17,12 +17,11 @@ public:
 	virtual void ShutdownModule() override;
 	
 	/** This function will be bound to Command (by default it will bring up plugin window) */
-	void PluginButtonClicked();
+	void OnOpenPluginWindow();
+	void OnCollectPostProcessVolume();
 	
 private:
-
 	void RegisterMenus();
-
 	TSharedRef<class SDockTab> OnSpawnPluginTab(const class FSpawnTabArgs& SpawnTabArgs);
 
 private:

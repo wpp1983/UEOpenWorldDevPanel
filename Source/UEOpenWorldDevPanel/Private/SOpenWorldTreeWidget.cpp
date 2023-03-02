@@ -5,7 +5,8 @@
 #define LOCTEXT_NAMESPACE "SOpenWorldTreeWidget"
 SOpenWorldTreeWidget::~SOpenWorldTreeWidget()
 {
-	FOpenWorldHelper::Get()->TreeDataChanged.RemoveAll(this);
+	FOpenWorldHelper::Get()->JsonPathChanged.RemoveAll(this);
+	FOpenWorldHelper::Get()->JsonDataChanged.RemoveAll(this);
 }
 void SOpenWorldTreeWidget::Construct(const FArguments& InArgs)
 {
@@ -32,12 +33,12 @@ void SOpenWorldTreeWidget::Construct(const FArguments& InArgs)
 		]
 	];
 
-	//FOpenWorldHelper::Test();
 	RootTreeItems.Empty();
-	FOpenWorldHelper::ReadFromJsonFile(RootTreeItems, FOpenWorldHelper::GetJsonFilePath());
+	FOpenWorldHelper::ReadFromJsonFile(RootTreeItems, FOpenWorldHelper::Get()->GetSelectJsonPath());
 	RequestTreeRefresh();
 
-	FOpenWorldHelper::Get()->TreeDataChanged.AddRaw(this, &SOpenWorldTreeWidget::OnTreeDataChanged);
+	FOpenWorldHelper::Get()->JsonPathChanged.AddRaw(this, &SOpenWorldTreeWidget::OnJsonPathChanged);
+	FOpenWorldHelper::Get()->JsonDataChanged.AddRaw(this, &SOpenWorldTreeWidget::OnJsonDataChanged);
 }
 
 void SOpenWorldTreeWidget::OnGetChildren(TSharedPtr<FOpenWorldTreeItem> InItem, TArray< TSharedPtr<FOpenWorldTreeItem> >& OutItems)
@@ -101,16 +102,23 @@ void SOpenWorldTreeWidget::OnFilterStringChanged(const FText& InFilterString)
 
 void SOpenWorldTreeWidget::CollectCheckedItems()
 {
-	FOpenWorldHelper::WriteToJsonFile(RootTreeItems, FOpenWorldHelper::GetJsonFilePath());
-	FOpenWorldHelper::Get()->Broadcast("Tree");
+	FOpenWorldHelper::WriteToJsonFile(RootTreeItems, FOpenWorldHelper::Get()->GetSelectJsonPath());
+	FOpenWorldHelper::Get()->JsonDataChanged.Broadcast("Tree");
 }
 
-void SOpenWorldTreeWidget::OnTreeDataChanged(FString InTag)
+void SOpenWorldTreeWidget::OnJsonPathChanged(FString InMapName)
+{
+	RootTreeItems.Empty();
+	FOpenWorldHelper::ReadFromJsonFile(RootTreeItems, FOpenWorldHelper::Get()->GetSelectJsonPath());
+	RequestTreeRefresh();
+}
+
+void SOpenWorldTreeWidget::OnJsonDataChanged(FString InTag)
 {
 	if (InTag == "Map")
 	{
 		RootTreeItems.Empty();
-		FOpenWorldHelper::ReadFromJsonFile(RootTreeItems, FOpenWorldHelper::GetJsonFilePath());
+		FOpenWorldHelper::ReadFromJsonFile(RootTreeItems, FOpenWorldHelper::Get()->GetSelectJsonPath());
 		RequestTreeRefresh();
 	}
 }

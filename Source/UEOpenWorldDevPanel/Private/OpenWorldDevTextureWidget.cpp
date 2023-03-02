@@ -1,6 +1,7 @@
 ﻿#include "OpenWorldDevTextureWidget.h"
 
 #include "OpenWorldDevWidget.h"
+#include "OpenWorldHelper.h"
 #include "UEOpenWorldDevPanelStyle.h"
 #include "AssetRegistry/AssetRegistryModule.h"
 #include "Components/SceneCaptureComponent2D.h"
@@ -61,6 +62,13 @@ void SOpenWorldDevTextureWidget::Construct(const FArguments& InArgs)
 				[
 					SNew(SHorizontalBox)
 
+					+SHorizontalBox::Slot()
+					.AutoWidth()
+					[
+						SNew(SButton)
+						.Text(FText::FromString("LoadJson"))
+						.OnClicked(this, &SOpenWorldDevTextureWidget::OnLoadJsonMap)
+					]
 					+SHorizontalBox::Slot()
 					.AutoWidth()
 					[
@@ -415,6 +423,13 @@ void SOpenWorldDevTextureWidget::CalTopViewOfWorld(FMatrix& OutProjectionMatrix,
 	{
 		OutProjectionMatrix.SetIdentity();
 	}
+}
+
+FReply SOpenWorldDevTextureWidget::OnLoadJsonMap() const
+{
+	FOpenWorldHelper::SelectMapJson();
+	
+	return FReply::Handled();
 }
 
 FReply SOpenWorldDevTextureWidget::CaptureWorldTo2D() const

@@ -2,7 +2,8 @@
 #include "Dom/JsonObject.h"
 
 
-DECLARE_MULTICAST_DELEGATE_OneParam( FOnOpenWorldTreeChanged, FString );
+DECLARE_MULTICAST_DELEGATE_OneParam( FOnOpenWorldJsonPathChanged, FString );
+DECLARE_MULTICAST_DELEGATE_OneParam( FOnOpenWorldJsonDataChanged, FString );
 
 struct FOpenWorldTreeItem : public TSharedFromThis<FOpenWorldTreeItem>
 {
@@ -87,6 +88,7 @@ public:
 	int IconType;
 	FLinearColor IconColor;
 	TArray<FVector> IconPostions;
+	TArray<FBox> IconBoxs;
 	//Unchecked, Checked, Undetermined
 	ECheckBoxState CheckBoxState;
 };
@@ -102,23 +104,25 @@ public:
 		}
 		return _Instance;
 	}
-	void Broadcast(FString InTag)
-	{
-		TreeDataChanged.Broadcast(InTag);
-	}
-	FOnOpenWorldTreeChanged TreeDataChanged;
+
+	FString GetSelectJsonPath();
+	void SetSelectJsonPath(FString InJsonPath);
+
+	FOnOpenWorldJsonPathChanged JsonPathChanged;
+	FOnOpenWorldJsonDataChanged JsonDataChanged;
+	FString SelectJsonPath;
 
 public:
-	static FString GetJsonFilePath();
 	static bool WriteToJsonFile(TArray<TSharedPtr<FOpenWorldTreeItem>>& InItems, FString InPath);
 	static bool ReadFromJsonFile(TArray<TSharedPtr<FOpenWorldTreeItem>>& OutItems, FString InPath);
-	static bool Test();
 
 	static TSharedPtr<FJsonObject> TreeItemToJsonObject(TSharedPtr<FOpenWorldTreeItem> InTreeItem);
 	static TSharedPtr<FOpenWorldTreeItem> JsonObjectToTreeItem(TSharedPtr<FOpenWorldTreeItem> InParentItem, TSharedPtr<FJsonObject> InJsonObject);
 	static void GetCheckedItems(TSharedPtr<FOpenWorldTreeItem> InItem, TArray<TSharedPtr<FOpenWorldTreeItem>>& InCheckedItems);
 	static TSharedPtr<FOpenWorldTreeItem> CreateFilterItem(TSharedPtr<FOpenWorldTreeItem> InThisItem, TSharedPtr<FOpenWorldTreeItem> InParentItem, FString InFilterString);
 
+	static bool RefreshMapJson(UWorld* InWorld, FString InClassName);
+	static void SelectMapJson();
 	
 private:
 	static FOpenWorldHelper* _Instance;
