@@ -23,7 +23,7 @@ SOpenWorldDevTextureWidget::SOpenWorldDevTextureWidget()
 	:CommandList(MakeShareable(new FUICommandList))
 {
 	RootTreeItems.Empty();
-	FOpenWorldHelper::ReadFromJsonFile(RootTreeItems, FOpenWorldHelper::GetJsonFilePath());
+	FOpenWorldHelper::ReadFromJsonFile(RootTreeItems, FOpenWorldHelper::Get()->GetSelectJsonPath());
 }
 
 void SOpenWorldDevTextureWidget::Construct(const FArguments& InArgs)
@@ -91,13 +91,13 @@ void SOpenWorldDevTextureWidget::Construct(const FArguments& InArgs)
 	this->SetOnMouseMove(FPointerEventHandler::CreateSP(this,&SOpenWorldDevTextureWidget::OnMouseMove));
 	this->SetOnMouseButtonDown(FPointerEventHandler::CreateSP(this,&SOpenWorldDevTextureWidget::OnMouseButtonDown));
 	this->SetOnMouseButtonDown(FPointerEventHandler::CreateSP(this,&SOpenWorldDevTextureWidget::OnMouseButtonUp));
-	FOpenWorldHelper::Get()->TreeDataChanged.AddRaw(this, &SOpenWorldDevTextureWidget::OnTreeDataChanged);
+	FOpenWorldHelper::Get()->JsonDataChanged.AddRaw(this, &SOpenWorldDevTextureWidget::OnTreeDataChanged);
 
 }
 
 SOpenWorldDevTextureWidget::~SOpenWorldDevTextureWidget()
 {
-	FOpenWorldHelper::Get()->TreeDataChanged.RemoveAll(this);
+	FOpenWorldHelper::Get()->JsonDataChanged.RemoveAll(this);
 }
 FReply SOpenWorldDevTextureWidget::OnMouseButtonDown(const FGeometry& MyGeometry, const FPointerEvent& MouseEvent)
 {
@@ -695,7 +695,7 @@ void SOpenWorldDevTextureWidget::OnTreeDataChanged(FString InTag)
 	if (InTag == "Tree")
 	{
 		RootTreeItems.Empty();
-		FOpenWorldHelper::ReadFromJsonFile(RootTreeItems, FOpenWorldHelper::GetJsonFilePath());
+		FOpenWorldHelper::ReadFromJsonFile(RootTreeItems, FOpenWorldHelper::Get()->GetSelectJsonPath());
 	}
 }
 
