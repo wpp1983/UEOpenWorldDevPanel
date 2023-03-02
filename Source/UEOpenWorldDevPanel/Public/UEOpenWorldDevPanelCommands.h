@@ -21,4 +21,6 @@ public:
 public:
 	TSharedPtr< FUICommandInfo > OpenPluginWindow;
 	TSharedPtr< FUICommandInfo > CollectPostProcessVolume;
+	TSharedPtr< FUICommandInfo> MoveCameraHere;
+	TSharedPtr< FUICommandInfo> DelecteSelected;
 };

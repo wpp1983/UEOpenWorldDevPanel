@@ -6,7 +6,7 @@
 #include "AssetRegistry/AssetRegistryModule.h"
 
 #include "WorldPartition/WorldPartition.h"
-
+#include "SOpenWorldTreeWidget.h"
 
 SOpenWorldDevWidget::SOpenWorldDevWidget()
 {
