@@ -3,13 +3,13 @@
 #include "UEOpenWorldDevPanel.h"
 #include "UEOpenWorldDevPanelStyle.h"
 #include "UEOpenWorldDevPanelCommands.h"
-#include "LevelEditor.h"
+#include "LevelEditorViewport.h"
 #include "OpenWorldDevWidget.h"
 #include "Widgets/Docking/SDockTab.h"
 #include "Widgets/Layout/SBox.h"
 #include "Widgets/Text/STextBlock.h"
 #include "ToolMenus.h"
-#include "OpenWorldDevWidget.h"
+#include "OpenWorldHelper.h"
 static const FName UEOpenWorldDevPanelTabName("UEOpenWorldDevPanel");
 
 #define LOCTEXT_NAMESPACE "FUEOpenWorldDevPanelModule"
@@ -27,7 +27,12 @@ void FUEOpenWorldDevPanelModule::StartupModule()
 
 	PluginCommands->MapAction(
 		FUEOpenWorldDevPanelCommands::Get().OpenPluginWindow,
-		FExecuteAction::CreateRaw(this, &FUEOpenWorldDevPanelModule::PluginButtonClicked),
+		FExecuteAction::CreateRaw(this, &FUEOpenWorldDevPanelModule::OnOpenPluginWindow),
+		FCanExecuteAction());
+
+	PluginCommands->MapAction(
+		FUEOpenWorldDevPanelCommands::Get().CollectPostProcessVolume,
+		FExecuteAction::CreateRaw(this, &FUEOpenWorldDevPanelModule::OnCollectPostProcessVolume),
 		FCanExecuteAction());
 
 	UToolMenus::RegisterStartupCallback(FSimpleMulticastDelegate::FDelegate::CreateRaw(this, &FUEOpenWorldDevPanelModule::RegisterMenus));
@@ -73,9 +78,18 @@ TSharedRef<SDockTab> FUEOpenWorldDevPanelModule::OnSpawnPluginTab(const FSpawnTa
 		];
 }
 
-void FUEOpenWorldDevPanelModule::PluginButtonClicked()
+void FUEOpenWorldDevPanelModule::OnOpenPluginWindow()
 {
 	FGlobalTabmanager::Get()->TryInvokeTab(UEOpenWorldDevPanelTabName);
+}
+
+void FUEOpenWorldDevPanelModule::OnCollectPostProcessVolume()
+{
+	if (GCurrentLevelEditingViewportClient)
+	{
+		UWorld* CurrentWorld = GCurrentLevelEditingViewportClient->GetWorld();
+		FOpenWorldHelper::RefreshMapJson(CurrentWorld, "APostProcessVolume");
+	}
 }
 
 void FUEOpenWorldDevPanelModule::RegisterMenus()
@@ -92,12 +106,15 @@ void FUEOpenWorldDevPanelModule::RegisterMenus()
 	}
 
 	{
-		UToolMenu* ToolbarMenu = UToolMenus::Get()->ExtendMenu("LevelEditor.LevelEditorToolBar");
+		UToolMenu* ToolbarMenu = UToolMenus::Get()->ExtendMenu("LevelEditor.LevelEditorToolBar.PlayToolBar");
 		{
-			FToolMenuSection& Section = ToolbarMenu->FindOrAddSection("Settings");
+			FToolMenuSection& Section = ToolbarMenu->FindOrAddSection("PluginTools");
 			{
-				FToolMenuEntry& Entry = Section.AddEntry(FToolMenuEntry::InitToolBarButton(FUEOpenWorldDevPanelCommands::Get().OpenPluginWindow));
-				Entry.SetCommandList(PluginCommands);
+				FToolMenuEntry& OpenPluginEntry = Section.AddEntry(FToolMenuEntry::InitToolBarButton(FUEOpenWorldDevPanelCommands::Get().OpenPluginWindow));
+				OpenPluginEntry.SetCommandList(PluginCommands);
+
+				FToolMenuEntry& CollectEntry = Section.AddEntry(FToolMenuEntry::InitToolBarButton(FUEOpenWorldDevPanelCommands::Get().CollectPostProcessVolume));
+				CollectEntry.SetCommandList(PluginCommands);
 			}
 		}
 	}

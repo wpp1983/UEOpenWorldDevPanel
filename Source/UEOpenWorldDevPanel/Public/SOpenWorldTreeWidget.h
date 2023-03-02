@@ -14,7 +14,8 @@ public:
 	void RequestTreeRefresh();
 	void OnFilterStringChanged(const FText& InFilterString);
 	void CollectCheckedItems();
-	void OnTreeDataChanged(FString InTag);
+	void OnJsonPathChanged(FString InMapName);
+	void OnJsonDataChanged(FString InTag);
 
 public:
 	TSharedPtr<STreeView<TSharedPtr<FOpenWorldTreeItem>>> TreeView;

@@ -44,6 +44,7 @@ TSharedRef< FSlateStyleSet > FUEOpenWorldDevPanelStyle::Create()
 	Style->SetContentRoot(IPluginManager::Get().FindPlugin("UEOpenWorldDevPanel")->GetBaseDir() / TEXT("Resources"));
 
 	Style->Set("UEOpenWorldDevPanel.OpenPluginWindow", new IMAGE_BRUSH_SVG(TEXT("PlaceholderButtonIcon"), Icon20x20));
+	Style->Set("UEOpenWorldDevPanel.CollectPostProcessVolume", new IMAGE_BRUSH_SVG(TEXT("PlaceholderButtonIcon"), Icon20x20));
 	Style->Set("OpenWorldDevPannle.Monster", new IMAGE_BRUSH(TEXT("Icon128"), Icon20x20));
 	Style->Set("OpenWorldDevPannle.Boss", new IMAGE_BRUSH(TEXT("BlueCycle"), Icon20x20));
 
