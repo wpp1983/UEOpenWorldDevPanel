@@ -327,13 +327,13 @@ const FSlateBrush *GetBrushByIconType(EIconType IconType)
 		case EIconType::ButtonIcon : return FUEOpenWorldDevPanelStyle::Get().GetBrush("OpenWorldDevPannle.Button"); break;
 		// case EIconType::Test1 : return FUEOpenWorldDevPanelStyle::Get().GetBrush("OpenWorldDevPannle.Boss");break;
 		case EIconType::Test2 : return FUEOpenWorldDevPanelStyle::Get().GetBrush("OpenWorldDevPannle.Monster");break;
-		case EIconType::Volume : return nullptr;
+		case EIconType::APostProcessVolume : return nullptr;
 		default:return nullptr;
 	}
 }
 void SOpenWorldDevTextureWidget::MakeElementByType(EIconType InType,FSlateWindowElementList& OutDrawElements, int32 LayerId, const FPaintGeometry WorldImageGeometry, TArray<FVector2D> AxisPoints, ESlateDrawEffect SlateDrawEffect, FLinearColor Color) const
 {
-	if(InType == EIconType::Volume)
+	if(InType == EIconType::APostProcessVolume)
 	{
 		FSlateDrawElement::MakeLines(
 							OutDrawElements,
@@ -371,55 +371,55 @@ int32 SOpenWorldDevTextureWidget::PaintActors(const FGeometry& AllottedGeometry,
 			for(auto child : item->GetChildren())
 			{
 				if(child->CheckBoxState == ECheckBoxState::Checked)
-					for(int index = 0; index < child->IconPostions.Num(); index ++)
+				{
+					auto pos = child->Postion;
+					FBox IconBox;
+					child->TryGetBoundingBox(IconBox);
+					FVector2d	WorldPositions = FVector2d(0.0);
+					WorldPositions = FVector2d(pos.X,pos.Y);
+					FVector2d RelativeNormalPosition = (WorldPositions - WorldMiniMapBounds.Min)/((WorldMiniMapBounds.Max - WorldMiniMapBounds.Min));
+					FVector2d LocalOffset, IconScreenSize;
+					FPaintGeometry WorldImageGeometry;
+					if(child->Type == EIconType::APostProcessVolume)
 					{
-						auto pos = child->IconPostions[index];
-						auto IconBox = child->IconBoxs[index];
-						FVector2d	WorldPositions = FVector2d(0.0);
-						WorldPositions = FVector2d(pos.X,pos.Y);
-						FVector2d RelativeNormalPosition = (WorldPositions - WorldMiniMapBounds.Min)/((WorldMiniMapBounds.Max - WorldMiniMapBounds.Min));
-						FVector2d LocalOffset, IconScreenSize;
-						FPaintGeometry WorldImageGeometry;
-						if(child->IconType == EIconType::Volume)
-						{
-							const FBox2D IconBound(
-						WorldToScreen.TransformPoint(FVector2d(IconBox.Min.X,IconBox.Min.Y)),
-						WorldToScreen.TransformPoint(FVector2d(IconBox.Max.X,IconBox.Max.Y)));
-							IconScreenSize = (IconBound.Max - IconBound.Min);
-							LocalOffset= MinimapBounds.Min + RelativeNormalPosition * (MinimapBounds.Max - MinimapBounds.Min) - IconScreenSize/2;
-						}
-						else
-						{
-							IconScreenSize = (MinimapBounds.Max - MinimapBounds.Min)* 0.01;// 
-							LocalOffset= MinimapBounds.Min + RelativeNormalPosition * (MinimapBounds.Max - MinimapBounds.Min) - IconScreenSize/2;
-							// FBox2d IconWorldBound(ScreenToWorld.TransformPoint(LocalOffset), ScreenToWorld.TransformPoint(LocalOffset + IconScreenSize));
-						}
-						WorldImageGeometry = AllottedGeometry.ToPaintGeometry(LocalOffset,IconScreenSize);
-
-						TArray<FVector2D> AxisPoints;
-						AxisPoints.Add(FVector2D(0,0));
-						AxisPoints.Add(FVector2D(0,IconScreenSize.Y));
-						AxisPoints.Add(FVector2D(IconScreenSize.X,IconScreenSize.Y));
-						AxisPoints.Add(FVector2D(IconScreenSize.X,0));
-						AxisPoints.Add(FVector2D(0,0));
-						// AxisPoints.Add(FVector2D(IconScreenSize.X,IconScreenSize.Y));
-						DisplayedItems.Add(FDrawIconInfo(pos,WorldPositions,IconBox,child));
-						bool bSelected = false;
-						for(auto SelectedItem : SelectedItems)
-						{
-							if(SelectedItem.ItemPtr == child && SelectedItem.WorldPosition == pos)
-							{
-								bSelected = true;
-								break;;
-							}
-						}
-						FLinearColor BrushColor = FLinearColor::White;
-						if(bSelected)
-						{
-							BrushColor = FLinearColor::Red;
-						}
-						MakeElementByType(EIconType(child->IconType),OutDrawElements,LayerId,WorldImageGeometry,AxisPoints,ESlateDrawEffect::None,BrushColor);
+						const FBox2D IconBound(
+					WorldToScreen.TransformPoint(FVector2d(IconBox.Min.X,IconBox.Min.Y)),
+					WorldToScreen.TransformPoint(FVector2d(IconBox.Max.X,IconBox.Max.Y)));
+						IconScreenSize = (IconBound.Max - IconBound.Min);
+						LocalOffset= MinimapBounds.Min + RelativeNormalPosition * (MinimapBounds.Max - MinimapBounds.Min) - IconScreenSize/2;
 					}
+					else
+					{
+						IconScreenSize = (MinimapBounds.Max - MinimapBounds.Min)* 0.01;// 
+						LocalOffset= MinimapBounds.Min + RelativeNormalPosition * (MinimapBounds.Max - MinimapBounds.Min) - IconScreenSize/2;
+						// FBox2d IconWorldBound(ScreenToWorld.TransformPoint(LocalOffset), ScreenToWorld.TransformPoint(LocalOffset + IconScreenSize));
+					}
+					WorldImageGeometry = AllottedGeometry.ToPaintGeometry(LocalOffset,IconScreenSize);
+
+					TArray<FVector2D> AxisPoints;
+					AxisPoints.Add(FVector2D(0,0));
+					AxisPoints.Add(FVector2D(0,IconScreenSize.Y));
+					AxisPoints.Add(FVector2D(IconScreenSize.X,IconScreenSize.Y));
+					AxisPoints.Add(FVector2D(IconScreenSize.X,0));
+					AxisPoints.Add(FVector2D(0,0));
+					// AxisPoints.Add(FVector2D(IconScreenSize.X,IconScreenSize.Y));
+					DisplayedItems.Add(FDrawIconInfo(pos,WorldPositions,IconBox,child));
+					bool bSelected = false;
+					for(auto SelectedItem : SelectedItems)
+					{
+						if(SelectedItem.ItemPtr == child && SelectedItem.WorldPosition == pos)
+						{
+							bSelected = true;
+							break;;
+						}
+					}
+					FLinearColor BrushColor = FLinearColor::White;
+					if(bSelected)
+					{
+						BrushColor = FLinearColor::Red;
+					}
+					MakeElementByType(EIconType(child->Type),OutDrawElements,LayerId,WorldImageGeometry,AxisPoints,ESlateDrawEffect::None,BrushColor);
+				}
 			}
 		}
 	}

@@ -2,16 +2,6 @@
 #include "OpenWorldHelper.h"
 #include "Engine/SceneCapture2D.h"
 
-UENUM(BlueprintType)
-enum EIconType
-{
-	Monster ,
-	Boss ,
-	Volume,
-	ButtonIcon,
-	Test2
-};
-
 struct FDrawIconInfo : public TSharedFromThis<FDrawIconInfo>
 {
 public:
