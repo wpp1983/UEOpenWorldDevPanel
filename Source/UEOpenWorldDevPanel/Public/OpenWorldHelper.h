@@ -5,12 +5,24 @@
 DECLARE_MULTICAST_DELEGATE_OneParam( FOnOpenWorldJsonPathChanged, FString );
 DECLARE_MULTICAST_DELEGATE_OneParam( FOnOpenWorldJsonDataChanged, FString );
 
+UENUM(BlueprintType)
+enum class EIconType : uint8
+{
+	None,
+	APostProcessVolume,
+	APointLight,
+	ASpotLight,
+	Monster ,
+	Boss ,
+	ButtonIcon,
+	Test2,
+};
+
 struct FOpenWorldTreeItem : public TSharedFromThis<FOpenWorldTreeItem>
 {
 	FOpenWorldTreeItem()
 	{
-		IconType = 0;
-		IconColor = FLinearColor::White;
+		Type = EIconType::None;
 		CheckBoxState = ECheckBoxState::Unchecked;
 	}
 
@@ -26,7 +38,7 @@ struct FOpenWorldTreeItem : public TSharedFromThis<FOpenWorldTreeItem>
 			return true;
 		}
 		
-		if (DisplayName.Contains(InFilterString))
+		if (Name.Contains(InFilterString))
 		{
 			return true;
 		}
@@ -79,18 +91,35 @@ struct FOpenWorldTreeItem : public TSharedFromThis<FOpenWorldTreeItem>
 			Item->SetCheckBoxState(InCheckBoxState);
 		}
 	}
+	
+	bool TryGetBoundingBox(FBox& InOutBox)
+	{
+		if (Properties.Contains("BoundingBox"))
+		{
+			FString ItemString = Properties["BoundingBox"];
+			FString MinString, MaxString;
+			if(ItemString.Split(TEXT("|"), &MinString, &MaxString))
+			{
+				InOutBox.Min.InitFromString(MinString);
+				InOutBox.Max.InitFromString(MaxString);
+			}
+
+			return true;
+		}
+		
+		return false;
+	}
+
 
 public:
 	TSharedPtr<FOpenWorldTreeItem> Parent;
 	TArray<TSharedPtr<FOpenWorldTreeItem>> Children;
 
-	FString DisplayName;
-	int IconType;
-	FLinearColor IconColor;
-	TArray<FVector> IconPostions;
-	TArray<FBox> IconBoxs;
-	//Unchecked, Checked, Undetermined
 	ECheckBoxState CheckBoxState;
+	FString Name;
+	EIconType Type;
+	FVector Postion;
+	TMap<FString, FString> Properties;
 };
 
 class FOpenWorldHelper

@@ -3,7 +3,11 @@
 #include "DesktopPlatformModule.h"
 #include "EngineUtils.h"
 #include "LevelEditorViewport.h"
+#include "Components/PointLightComponent.h"
+#include "Components/SpotLightComponent.h"
+#include "Engine/PointLight.h"
 #include "Engine/PostProcessVolume.h"
+#include "Engine/SpotLight.h"
 #include "Misc/FileHelper.h"
 #include "Serialization/JsonReader.h"
 #include "Serialization/JsonSerializer.h"
@@ -122,31 +126,18 @@ int GetIntFromCheckBoxState(ECheckBoxState CheckBoxState)
 TSharedPtr<FJsonObject> FOpenWorldHelper::TreeItemToJsonObject(TSharedPtr<FOpenWorldTreeItem> InTreeItem)
 {
 	TSharedPtr<FJsonObject> JsonObject = MakeShareable(new FJsonObject());
-	JsonObject->SetStringField("DisplayName", InTreeItem->DisplayName);
-	JsonObject->SetStringField("IconColor", InTreeItem->IconColor.ToString());
-	JsonObject->SetNumberField("IconType", InTreeItem->IconType);
-
-	//Position
-	TArray<TSharedPtr<FJsonValue>> IconPositionsJsonValues;
-	for (int Index = 0; Index < InTreeItem->IconPostions.Num(); Index++)
-	{
-		TSharedPtr<FJsonValue> NewJsonValue = MakeShareable(new FJsonValueString(InTreeItem->IconPostions[Index].ToString()));
-		IconPositionsJsonValues.Add(NewJsonValue);
-	}
-	JsonObject->SetArrayField("IconPositions", IconPositionsJsonValues);
-
-	//Box
-	TArray<TSharedPtr<FJsonValue>> IconBoxsJsonValues;
-	for (int Index = 0; Index < InTreeItem->IconBoxs.Num(); Index++)
-	{
-		FString NewString = FString::Printf(TEXT("%s|%s"), *InTreeItem->IconBoxs[Index].Min.ToString(), *InTreeItem->IconBoxs[Index].Max.ToString());
-		TSharedPtr<FJsonValue> NewJsonValue = MakeShareable(new FJsonValueString(NewString));
-		IconBoxsJsonValues.Add(NewJsonValue);
-	}
-	JsonObject->SetArrayField("IconBoxs", IconBoxsJsonValues);
-	
 	JsonObject->SetNumberField("CheckBoxState", GetIntFromCheckBoxState(InTreeItem->GetCheckBoxState()));
-
+	JsonObject->SetStringField("Name", InTreeItem->Name);
+	JsonObject->SetNumberField("Type", (uint8)InTreeItem->Type);
+	JsonObject->SetStringField("Postion", InTreeItem->Postion.ToString());
+	//Properties
+	TSharedPtr<FJsonObject> PropertiesJsonObject = MakeShareable(new FJsonObject());
+	for (auto& PropertyItem : InTreeItem->Properties)
+	{
+		PropertiesJsonObject->SetStringField(PropertyItem.Key, PropertyItem.Value);
+	}
+	JsonObject->SetObjectField("Properties", PropertiesJsonObject);
+	//Children
 	TArray<TSharedPtr<FJsonValue>> ChildrenJsonValues;
 	for (int Index = 0; Index < InTreeItem->Children.Num(); Index++)
 	{
@@ -166,36 +157,17 @@ TSharedPtr<FOpenWorldTreeItem> FOpenWorldHelper::JsonObjectToTreeItem(TSharedPtr
 	}
 	
 	TSharedPtr<FOpenWorldTreeItem> NewTreeItem = MakeShareable(new FOpenWorldTreeItem);
-	NewTreeItem->DisplayName = InJsonObject->GetStringField("DisplayName");
-	NewTreeItem->IconColor.InitFromString(InJsonObject->GetStringField("IconColor"));
-	NewTreeItem->IconType = InJsonObject->GetNumberField("IconType");
-	//Position
-	TArray<TSharedPtr<FJsonValue>> IconPositionsJsonValues = InJsonObject->GetArrayField("IconPositions");
-	for (int Index = 0; Index < IconPositionsJsonValues.Num(); Index++)
-	{
-		FVector NewPos;
-		FString ItemString = IconPositionsJsonValues[Index]->AsString();
-		if(NewPos.InitFromString(ItemString))
-		{
-			NewTreeItem->IconPostions.Add(NewPos);
-		}
-	}
-	//Box
-	TArray<TSharedPtr<FJsonValue>> IconBoxsJsonValues = InJsonObject->GetArrayField("IconBoxs");
-	for (int Index = 0; Index < IconBoxsJsonValues.Num(); Index++)
-	{
-		FString ItemString = IconBoxsJsonValues[Index]->AsString();
-		FString MinString, MaxString;
-		if(ItemString.Split(TEXT("|"), &MinString, &MaxString))
-		{
-			FBox NewBox;
-			NewBox.Min.InitFromString(MinString);
-			NewBox.Max.InitFromString(MaxString);
-			NewTreeItem->IconBoxs.Add(NewBox);
-		}
-	}
 	NewTreeItem->CheckBoxState = GetCheckBoxStateFromInt(InJsonObject->GetNumberField("CheckBoxState"));
-
+	NewTreeItem->Name = InJsonObject->GetStringField("Name");
+	NewTreeItem->Type = (EIconType)InJsonObject->GetNumberField("Type");
+	NewTreeItem->Postion.InitFromString(InJsonObject->GetStringField("Position"));
+	//Properties
+	TSharedPtr<FJsonObject> PropertiesJsonObject = InJsonObject->GetObjectField("Properties");
+	for(auto& Item : PropertiesJsonObject->Values)
+	{
+		NewTreeItem->Properties.Add(Item.Key, Item.Value->AsString());
+	}
+	//Children
 	TArray<TSharedPtr<FJsonValue>> ChildrenJsonValues = InJsonObject->GetArrayField("Children");
 	for (int Index = 0; Index < ChildrenJsonValues.Num(); Index++)
 	{
@@ -217,12 +189,11 @@ void FOpenWorldHelper::GetCheckedItems(TSharedPtr<FOpenWorldTreeItem> InItem, TA
 	if (InItem->GetCheckBoxState() != ECheckBoxState::Unchecked)
 	{
 		TSharedPtr<FOpenWorldTreeItem> ThisItem = MakeShareable(new FOpenWorldTreeItem);
-		ThisItem->DisplayName = InItem->DisplayName;
-		ThisItem->IconColor = InItem->IconColor;
-		ThisItem->IconType = InItem->IconType;
-		ThisItem->IconPostions = InItem->IconPostions;
-		ThisItem->IconBoxs = InItem->IconBoxs;
 		ThisItem->CheckBoxState = InItem->CheckBoxState;
+		ThisItem->Name = InItem->Name;
+		ThisItem->Type = InItem->Type;
+		ThisItem->Postion = InItem->Postion;
+		ThisItem->Properties = InItem->Properties;
 		InCheckedItems.Add(ThisItem);
 	}
 }
@@ -233,12 +204,11 @@ TSharedPtr<FOpenWorldTreeItem> FOpenWorldHelper::CreateFilterItem(TSharedPtr<FOp
 	if (InItem->Filter(InFilterString))
 	{
 		ThisItem = MakeShareable(new FOpenWorldTreeItem);
-		ThisItem->DisplayName = InItem->DisplayName;
-		ThisItem->IconColor = InItem->IconColor;
-		ThisItem->IconType = InItem->IconType;
-		ThisItem->IconPostions = InItem->IconPostions;
-		ThisItem->IconBoxs = InItem->IconBoxs;
 		ThisItem->CheckBoxState = InItem->CheckBoxState;
+		ThisItem->Name = InItem->Name;
+		ThisItem->Type = InItem->Type;
+		ThisItem->Postion = InItem->Postion;
+		ThisItem->Properties = InItem->Properties;
 		if (InParentItem)
 		{
 			ThisItem->Parent = InParentItem;
@@ -257,24 +227,75 @@ bool FOpenWorldHelper::RefreshMapJson(UWorld* InWorld, FString InClassName)
 	if (!InWorld)
 		return false;
 
-	TArray<TSharedPtr<FOpenWorldTreeItem>> Items;
-	TSharedPtr<FOpenWorldTreeItem> NewItem1 = MakeShareable(new FOpenWorldTreeItem());
-	Items.Add(NewItem1);
-	NewItem1->DisplayName = "APostProcessVolume";
-	TActorIterator<APostProcessVolume> Iter = TActorIterator<APostProcessVolume>(InWorld);
-	for (Iter; Iter; ++Iter)
+	TArray<APostProcessVolume*> PostProcessVolumes;
+	TArray<APointLight*> PointLights;
+	TArray<ASpotLight*> SpotLights;
+	for (auto& ActorItem : InWorld->PersistentLevel->Actors)
 	{
-		if (Iter)
+		if (APostProcessVolume* PostProcessVolume = Cast<APostProcessVolume>(ActorItem))
 		{
-			TSharedPtr<FOpenWorldTreeItem> NewChildItem = MakeShareable(new FOpenWorldTreeItem());
-			NewItem1->Children.Add(NewChildItem);
-			NewChildItem->Parent = NewItem1;
-			NewChildItem->DisplayName = Iter->GetName();
-			NewChildItem->IconColor = FLinearColor::White;
-			NewChildItem->IconType = 2;
-			NewChildItem->IconPostions.Add(Iter->GetActorLocation());
-			NewChildItem->IconBoxs.Add(Iter->GetComponentsBoundingBox(true, true));
+			PostProcessVolumes.Add(PostProcessVolume);
 		}
+		else if(APointLight* PointLight = Cast<APointLight>(ActorItem))
+		{
+			PointLights.Add(PointLight);
+		}
+		else if(ASpotLight* SpotLight = Cast<ASpotLight>(ActorItem))
+		{
+			SpotLights.Add(SpotLight);
+		}
+	}
+	TArray<TSharedPtr<FOpenWorldTreeItem>> Items;
+	//PostProcessVolumes
+	TSharedPtr<FOpenWorldTreeItem> PostProcessVolumesItem = MakeShareable(new FOpenWorldTreeItem());
+	Items.Add(PostProcessVolumesItem);
+	PostProcessVolumesItem->Name = "APostProcessVolume";
+	for (auto& Item : PostProcessVolumes)
+	{
+		TSharedPtr<FOpenWorldTreeItem> NewChildItem = MakeShareable(new FOpenWorldTreeItem());
+        PostProcessVolumesItem->Children.Add(NewChildItem);
+        NewChildItem->Parent = PostProcessVolumesItem;
+        NewChildItem->Name = Item->GetName();
+        NewChildItem->Type = EIconType::APostProcessVolume;
+        NewChildItem->Postion = Item->GetActorLocation();
+        FBox ItemBox = Item->GetComponentsBoundingBox(true, true);
+        FString ItemBoxString = FString::Printf(TEXT("%s|%s"), *ItemBox.Min.ToString(), *ItemBox.Max.ToString());
+        NewChildItem->Properties.Add("BoundingBox", ItemBoxString);
+	}
+	//PointLights
+	TSharedPtr<FOpenWorldTreeItem> PointLightsItem = MakeShareable(new FOpenWorldTreeItem());
+	Items.Add(PointLightsItem);
+	PointLightsItem->Name = "APointLight";
+	for (auto& Item : PointLights)
+	{
+		TSharedPtr<FOpenWorldTreeItem> NewChildItem = MakeShareable(new FOpenWorldTreeItem());
+		PointLightsItem->Children.Add(NewChildItem);
+		NewChildItem->Parent = PointLightsItem;
+		NewChildItem->Name = Item->GetName();
+		NewChildItem->Type = EIconType::APointLight;
+		NewChildItem->Postion = Item->GetActorLocation();
+		NewChildItem->Properties.Add("LightColor", Item->GetLightColor().ToString());
+		NewChildItem->Properties.Add("Intensity", FString::Printf(TEXT("%f"), Item->PointLightComponent->Intensity));
+		NewChildItem->Properties.Add("AttenuationRadius", FString::Printf(TEXT("%f"), Item->PointLightComponent->AttenuationRadius));
+	}
+	//SpotLights
+	TSharedPtr<FOpenWorldTreeItem> SpotLightsItem = MakeShareable(new FOpenWorldTreeItem());
+	Items.Add(SpotLightsItem);
+	SpotLightsItem->Name = "ASpotLight";
+	for (auto& Item : SpotLights)
+	{
+		TSharedPtr<FOpenWorldTreeItem> NewChildItem = MakeShareable(new FOpenWorldTreeItem());
+		SpotLightsItem->Children.Add(NewChildItem);
+		NewChildItem->Parent = SpotLightsItem;
+		NewChildItem->Name = Item->GetName();
+		NewChildItem->Type = EIconType::ASpotLight;
+		NewChildItem->Postion = Item->GetActorLocation();
+		NewChildItem->Properties.Add("Rotation", Item->GetActorRotation().ToString());
+		NewChildItem->Properties.Add("LightColor", Item->GetLightColor().ToString());
+		NewChildItem->Properties.Add("Intensity", FString::Printf(TEXT("%f"), Item->SpotLightComponent->Intensity));
+		NewChildItem->Properties.Add("AttenuationRadius", FString::Printf(TEXT("%f"), Item->SpotLightComponent->AttenuationRadius));
+		NewChildItem->Properties.Add("InnerConeAngle", FString::Printf(TEXT("%f"), Item->SpotLightComponent->InnerConeAngle));
+		NewChildItem->Properties.Add("OuterConeAngle", FString::Printf(TEXT("%f"), Item->SpotLightComponent->OuterConeAngle));
 	}
 
 	//Write to json

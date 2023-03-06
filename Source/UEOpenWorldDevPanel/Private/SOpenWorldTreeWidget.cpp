@@ -74,7 +74,7 @@ TSharedRef<ITableRow> SOpenWorldTreeWidget::OnGenerateRow(TSharedPtr<FOpenWorldT
 		.FillWidth(1)
 		[
 			SNew(STextBlock)
-			.Text(FText::FromString(InItem->DisplayName))
+			.Text(FText::FromString(InItem->Name))
 			.ColorAndOpacity(FColorList::LightGrey)			
 		]
 	];
