@@ -262,6 +262,8 @@ int32 SOpenWorldDevTextureWidget::OnPaint(const FPaintArgs& Args, const FGeometr
 		UpdateTransform();
 		LayerId = PaintMinimap(AllottedGeometry,MyCullingRect,OutDrawElements,LayerId);
 		LayerId = PaintActors(AllottedGeometry,MyCullingRect,OutDrawElements,LayerId);
+		LayerId = PaintPositionStr(AllottedGeometry,MyCullingRect,OutDrawElements,LayerId);
+
 	}
 	else //去指定路径中加载
 	{
@@ -270,6 +272,24 @@ int32 SOpenWorldDevTextureWidget::OnPaint(const FPaintArgs& Args, const FGeometr
 
 	return SCompoundWidget::OnPaint(Args, AllottedGeometry, MyCullingRect, OutDrawElements, LayerId, InWidgetStyle, bParentEnabled);
 }
+
+int32 SOpenWorldDevTextureWidget::PaintPositionStr(const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId) const
+{
+	//current mouse position
+	FLinearColor BackgroundColor = FLinearColor::Black.CopyWithNewOpacity(0.35f);
+	FText InstructionText = FText::FromString(FString::Format(TEXT("X: {0}\nY: {1}"),{MouseCursorPosWorld.X,MouseCursorPosWorld.Y}));
+	const FSlateBrush*   WhiteBrush = FAppStyle::GetBrush("WhiteBrush");
+	const TSharedRef<FSlateFontMeasure> FontMeasure = FSlateApplication::Get().GetRenderer()->GetFontMeasureService();
+	const FSlateFontInfo FontInfo = FCoreStyle::Get().GetFontStyle("FontAwesome.13");
+	const FVector2D LabelSize = FontMeasure->Measure(InstructionText, FontInfo);
+	const FVector2D GeometrySize = AllottedGeometry.GetLocalSize();
+	const FVector2D LabelOffset = FVector2D((GeometrySize.X - LabelSize.X) / 2.f, (GeometrySize.Y - LabelSize.Y) / 2.f);
+	const FPaintGeometry LabelGeometry = AllottedGeometry.ToPaintGeometry(FSlateLayoutTransform(MouseCursorPos));
+
+	FSlateDrawElement::MakeText(OutDrawElements, LayerId, LabelGeometry, InstructionText, FontInfo);
+	return  LayerId;
+}
+
 
 int32 SOpenWorldDevTextureWidget::PaintMinimap(const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId) const
 {
@@ -305,10 +325,35 @@ const FSlateBrush *GetBrushByIconType(EIconType IconType)
 		case EIconType::Monster : return FUEOpenWorldDevPanelStyle::Get().GetBrush("OpenWorldDevPannle.Monster");break;;
 		case EIconType::Boss : return FUEOpenWorldDevPanelStyle::Get().GetBrush("OpenWorldDevPannle.Boss"); break;
 		case EIconType::ButtonIcon : return FUEOpenWorldDevPanelStyle::Get().GetBrush("OpenWorldDevPannle.Button"); break;
-		case EIconType::Test1 : return FUEOpenWorldDevPanelStyle::Get().GetBrush("OpenWorldDevPannle.Boss");break;
+		// case EIconType::Test1 : return FUEOpenWorldDevPanelStyle::Get().GetBrush("OpenWorldDevPannle.Boss");break;
 		case EIconType::Test2 : return FUEOpenWorldDevPanelStyle::Get().GetBrush("OpenWorldDevPannle.Monster");break;
-
+		case EIconType::Volume : return nullptr;
 		default:return nullptr;
+	}
+}
+void SOpenWorldDevTextureWidget::MakeElementByType(EIconType InType,FSlateWindowElementList& OutDrawElements, int32 LayerId, const FPaintGeometry WorldImageGeometry, TArray<FVector2D> AxisPoints, ESlateDrawEffect SlateDrawEffect, FLinearColor Color) const
+{
+	if(InType == EIconType::Volume)
+	{
+		FSlateDrawElement::MakeLines(
+							OutDrawElements,
+							LayerId,
+							WorldImageGeometry,
+							AxisPoints,
+							SlateDrawEffect,
+							Color
+							);
+	}
+	else
+	{
+		const FSlateBrush *Brush = GetBrushByIconType(EIconType(InType));
+		FSlateDrawElement::MakeBox(
+							OutDrawElements,
+							LayerId-1,
+							WorldImageGeometry,
+							Brush,
+							SlateDrawEffect,
+							Color);
 	}
 }
 
@@ -326,20 +371,39 @@ int32 SOpenWorldDevTextureWidget::PaintActors(const FGeometry& AllottedGeometry,
 			for(auto child : item->GetChildren())
 			{
 				if(child->CheckBoxState == ECheckBoxState::Checked)
-					for(auto pos : child->IconPostions)
+					for(int index = 0; index < child->IconPostions.Num(); index ++)
 					{
-						const FSlateBrush *Brush = GetBrushByIconType(EIconType(child->IconType));
-
+						auto pos = child->IconPostions[index];
+						auto IconBox = child->IconBoxs[index];
 						FVector2d	WorldPositions = FVector2d(0.0);
 						WorldPositions = FVector2d(pos.X,pos.Y);
 						FVector2d RelativeNormalPosition = (WorldPositions - WorldMiniMapBounds.Min)/((WorldMiniMapBounds.Max - WorldMiniMapBounds.Min));
-						FVector2d IconScreenSize = (MinimapBounds.Max - MinimapBounds.Min) * 0.01;
-						// IconScreenSize.X =  FMath::Clamp(IconScreenSize.X,IconMinSize.X,IconMaxSize.X);
-						// IconScreenSize.Y =  FMath::Clamp(IconScreenSize.Y,IconMinSize.Y,IconMaxSize.Y);
-						FVector2d LocalOffset= MinimapBounds.Min + RelativeNormalPosition * (MinimapBounds.Max - MinimapBounds.Min) - IconScreenSize/2;
-						FBox2d IconWorldBound(ScreenToWorld.TransformPoint(LocalOffset), ScreenToWorld.TransformPoint(LocalOffset + IconScreenSize));
-						const FPaintGeometry WorldImageGeometry = AllottedGeometry.ToPaintGeometry(LocalOffset,IconScreenSize);
-						DisplayedItems.Add(FDrawIconInfo(pos,WorldPositions,IconWorldBound,child));
+						FVector2d LocalOffset, IconScreenSize;
+						FPaintGeometry WorldImageGeometry;
+						if(child->IconType == EIconType::Volume)
+						{
+							const FBox2D IconBound(
+						WorldToScreen.TransformPoint(FVector2d(IconBox.Min.X,IconBox.Min.Y)),
+						WorldToScreen.TransformPoint(FVector2d(IconBox.Max.X,IconBox.Max.Y)));
+							IconScreenSize = (IconBound.Max - IconBound.Min);
+							LocalOffset= MinimapBounds.Min + RelativeNormalPosition * (MinimapBounds.Max - MinimapBounds.Min) - IconScreenSize/2;
+						}
+						else
+						{
+							IconScreenSize = (MinimapBounds.Max - MinimapBounds.Min)* 0.01;// 
+							LocalOffset= MinimapBounds.Min + RelativeNormalPosition * (MinimapBounds.Max - MinimapBounds.Min) - IconScreenSize/2;
+							// FBox2d IconWorldBound(ScreenToWorld.TransformPoint(LocalOffset), ScreenToWorld.TransformPoint(LocalOffset + IconScreenSize));
+						}
+						WorldImageGeometry = AllottedGeometry.ToPaintGeometry(LocalOffset,IconScreenSize);
+
+						TArray<FVector2D> AxisPoints;
+						AxisPoints.Add(FVector2D(0,0));
+						AxisPoints.Add(FVector2D(0,IconScreenSize.Y));
+						AxisPoints.Add(FVector2D(IconScreenSize.X,IconScreenSize.Y));
+						AxisPoints.Add(FVector2D(IconScreenSize.X,0));
+						AxisPoints.Add(FVector2D(0,0));
+						// AxisPoints.Add(FVector2D(IconScreenSize.X,IconScreenSize.Y));
+						DisplayedItems.Add(FDrawIconInfo(pos,WorldPositions,IconBox,child));
 						bool bSelected = false;
 						for(auto SelectedItem : SelectedItems)
 						{
@@ -349,43 +413,16 @@ int32 SOpenWorldDevTextureWidget::PaintActors(const FGeometry& AllottedGeometry,
 								break;;
 							}
 						}
+						FLinearColor BrushColor = FLinearColor::White;
 						if(bSelected)
 						{
-							FSlateDrawElement::MakeBox(
-								OutDrawElements,
-								LayerId-1,
-								WorldImageGeometry,
-								Brush,
-								ESlateDrawEffect::None,
-								FLinearColor::Red);
+							BrushColor = FLinearColor::Red;
 						}
-						else
-						{
-							FSlateDrawElement::MakeBox(
-								OutDrawElements,
-								LayerId-1,
-								WorldImageGeometry,
-								Brush,
-								ESlateDrawEffect::None,
-								FLinearColor::White);
-						}
-						
+						MakeElementByType(EIconType(child->IconType),OutDrawElements,LayerId,WorldImageGeometry,AxisPoints,ESlateDrawEffect::None,BrushColor);
 					}
 			}
 		}
 	}
-	//current mouse position
-	FLinearColor BackgroundColor = FLinearColor::Black.CopyWithNewOpacity(0.35f);
-	FText InstructionText = FText::FromString(FString::Format(TEXT("X: {0}\nY: {1}"),{MouseCursorPosWorld.X,MouseCursorPosWorld.Y}));
-	const FSlateBrush*   WhiteBrush = FAppStyle::GetBrush("WhiteBrush");
-	const TSharedRef<FSlateFontMeasure> FontMeasure = FSlateApplication::Get().GetRenderer()->GetFontMeasureService();
-	const FSlateFontInfo FontInfo = FCoreStyle::Get().GetFontStyle("FontAwesome.13");
-	const FVector2D LabelSize = FontMeasure->Measure(InstructionText, FontInfo);
-	const FVector2D GeometrySize = AllottedGeometry.GetLocalSize();
-	const FVector2D LabelOffset = FVector2D((GeometrySize.X - LabelSize.X) / 2.f, (GeometrySize.Y - LabelSize.Y) / 2.f);
-	const FPaintGeometry LabelGeometry = AllottedGeometry.ToPaintGeometry(FSlateLayoutTransform(MouseCursorPos));
-
-	FSlateDrawElement::MakeText(OutDrawElements, LayerId, LabelGeometry, InstructionText, FontInfo);
 	return  LayerId;
 }
 void SOpenWorldDevTextureWidget::CustomPaint(FString key, EIconType Icon, FVector2d WorldPositions)
@@ -704,8 +741,8 @@ void SOpenWorldDevTextureWidget::GetSelectedItems(FVector2D InMouseCursorPosWorl
 	SelectedItems.Empty();
 	for(auto DisplayedItem : DisplayedItems)
 	{
-		FVector2d BoundMax = DisplayedItem.WorldIconBound.Max;
-		FVector2d BoundMin = DisplayedItem.WorldIconBound.Min;
+		FVector2d BoundMax = FVector2d(DisplayedItem.WorldIconBound.Max.X,DisplayedItem.WorldIconBound.Max.Y);
+		FVector2d BoundMin = FVector2d(DisplayedItem.WorldIconBound.Min.X,DisplayedItem.WorldIconBound.Min.Y);
 		if(InMouseCursorPosWorld >= BoundMin && InMouseCursorPosWorld <= BoundMax)
 		{
 			SelectedItems.Add(DisplayedItem);

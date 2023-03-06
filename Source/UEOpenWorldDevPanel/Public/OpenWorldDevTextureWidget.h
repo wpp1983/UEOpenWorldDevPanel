@@ -5,17 +5,17 @@
 UENUM(BlueprintType)
 enum EIconType
 {
-	Monster UMETA(DisplayName = "Weather Preset"),
-	Boss UMETA(DisplayName = "Weather Settings"),
+	Monster ,
+	Boss ,
+	Volume,
 	ButtonIcon,
-	Test1,
 	Test2
 };
 
 struct FDrawIconInfo : public TSharedFromThis<FDrawIconInfo>
 {
 public:
-	FDrawIconInfo(FVector Pos = FVector(0), FVector2d InScreenPosition = FVector2d(0), FBox2d InWorldIconBound = FBox2d(), TSharedPtr<FOpenWorldTreeItem> Item = nullptr)
+	FDrawIconInfo(FVector Pos = FVector(0), FVector2d InScreenPosition = FVector2d(0), FBox InWorldIconBound = FBox(), TSharedPtr<FOpenWorldTreeItem> Item = nullptr)
 		:WorldPosition(Pos),ScreenPosition(InScreenPosition),WorldIconBound(InWorldIconBound),ItemPtr(Item)
 	{
 	};
@@ -23,7 +23,7 @@ public:
 
 	FVector WorldPosition;
 	FVector2d ScreenPosition;
-	FBox2d WorldIconBound;
+	FBox WorldIconBound;
 	TSharedPtr<FOpenWorldTreeItem> ItemPtr;
 };
 
@@ -57,12 +57,13 @@ public:
 	void OnDeleteSelected();
 	FReply CaptureWorldTo2D() const;
 	void OnTreeDataChanged(FString InTag);
-  
+	void MakeElementByType(EIconType Type, FSlateWindowElementList& OutDrawElements, int32 LayerId, const FPaintGeometry WorldImageGeometry,TArray<FVector2D> AxisPoints = {}, ESlateDrawEffect SlateDrawEffect = ESlateDrawEffect::None, FLinearColor Color = FLinearColor::White) const;
 protected:
 	
 	// virtual int32 OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const override;
 	virtual int32 PaintMinimap(const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId) const;
 	virtual int32 PaintActors(const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId) const;
+	virtual int32 PaintPositionStr(const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId) const;
 	virtual void CustomPaint(FString key, EIconType Icon, TArray<FVector2d> WorldPositions);
 	virtual void CustomPaint(FString key, EIconType Icon, FVector2d WorldPositions);
 	void UpdateTransform()const;
@@ -82,8 +83,8 @@ protected:
 	mutable FBox2D WorldMiniMapBounds;
 	mutable FTransform2d WorldToScreen;
 	mutable FTransform2d ScreenToWorld;
-	mutable float Scale;
-	mutable FVector2D Trans;
+	mutable float Scale = 0.001f;
+	mutable FVector2D Trans ;
 	mutable  FBox WorldBound;
 	float TotalMouseDelta;
 	FVector2D MouseCursorPos;
@@ -94,10 +95,10 @@ protected:
 	FVector2D MeasureStart;
 	FVector2D MeasureEnd;
 	FVector2D MouseCurentPosition;
-	bool bIsDragSelecting;
-	bool bIsPanning;
+	bool bIsDragSelecting = false;
+	bool bIsPanning = false;
 	bool bIsMeasuring = false;
-	bool bShowActors;
+	bool bShowActors = false;
 
 	FVector2d IconMinSize = FVector2d(5);
 	FVector2d IconMaxSize = FVector2d(10);
