@@ -118,7 +118,7 @@ public:
 	ECheckBoxState CheckBoxState;
 	FString Name;
 	EIconType Type;
-	FVector Postion;
+	FVector Position;
 	TMap<FString, FString> Properties;
 };
 
