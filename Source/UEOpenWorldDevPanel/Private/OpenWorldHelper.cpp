@@ -129,7 +129,7 @@ TSharedPtr<FJsonObject> FOpenWorldHelper::TreeItemToJsonObject(TSharedPtr<FOpenW
 	JsonObject->SetNumberField("CheckBoxState", GetIntFromCheckBoxState(InTreeItem->GetCheckBoxState()));
 	JsonObject->SetStringField("Name", InTreeItem->Name);
 	JsonObject->SetNumberField("Type", (uint8)InTreeItem->Type);
-	JsonObject->SetStringField("Postion", InTreeItem->Postion.ToString());
+	JsonObject->SetStringField("Position", InTreeItem->Position.ToString());
 	//Properties
 	TSharedPtr<FJsonObject> PropertiesJsonObject = MakeShareable(new FJsonObject());
 	for (auto& PropertyItem : InTreeItem->Properties)
@@ -160,7 +160,7 @@ TSharedPtr<FOpenWorldTreeItem> FOpenWorldHelper::JsonObjectToTreeItem(TSharedPtr
 	NewTreeItem->CheckBoxState = GetCheckBoxStateFromInt(InJsonObject->GetNumberField("CheckBoxState"));
 	NewTreeItem->Name = InJsonObject->GetStringField("Name");
 	NewTreeItem->Type = (EIconType)InJsonObject->GetNumberField("Type");
-	NewTreeItem->Postion.InitFromString(InJsonObject->GetStringField("Position"));
+	NewTreeItem->Position.InitFromString(InJsonObject->GetStringField("Position"));
 	//Properties
 	TSharedPtr<FJsonObject> PropertiesJsonObject = InJsonObject->GetObjectField("Properties");
 	for(auto& Item : PropertiesJsonObject->Values)
@@ -192,7 +192,7 @@ void FOpenWorldHelper::GetCheckedItems(TSharedPtr<FOpenWorldTreeItem> InItem, TA
 		ThisItem->CheckBoxState = InItem->CheckBoxState;
 		ThisItem->Name = InItem->Name;
 		ThisItem->Type = InItem->Type;
-		ThisItem->Postion = InItem->Postion;
+		ThisItem->Position = InItem->Position;
 		ThisItem->Properties = InItem->Properties;
 		InCheckedItems.Add(ThisItem);
 	}
@@ -207,7 +207,7 @@ TSharedPtr<FOpenWorldTreeItem> FOpenWorldHelper::CreateFilterItem(TSharedPtr<FOp
 		ThisItem->CheckBoxState = InItem->CheckBoxState;
 		ThisItem->Name = InItem->Name;
 		ThisItem->Type = InItem->Type;
-		ThisItem->Postion = InItem->Postion;
+		ThisItem->Position = InItem->Position;
 		ThisItem->Properties = InItem->Properties;
 		if (InParentItem)
 		{
@@ -257,7 +257,7 @@ bool FOpenWorldHelper::RefreshMapJson(UWorld* InWorld, FString InClassName)
         NewChildItem->Parent = PostProcessVolumesItem;
         NewChildItem->Name = Item->GetName();
         NewChildItem->Type = EIconType::APostProcessVolume;
-        NewChildItem->Postion = Item->GetActorLocation();
+        NewChildItem->Position = Item->GetActorLocation();
         FBox ItemBox = Item->GetComponentsBoundingBox(true, true);
         FString ItemBoxString = FString::Printf(TEXT("%s|%s"), *ItemBox.Min.ToString(), *ItemBox.Max.ToString());
         NewChildItem->Properties.Add("BoundingBox", ItemBoxString);
@@ -273,7 +273,7 @@ bool FOpenWorldHelper::RefreshMapJson(UWorld* InWorld, FString InClassName)
 		NewChildItem->Parent = PointLightsItem;
 		NewChildItem->Name = Item->GetName();
 		NewChildItem->Type = EIconType::APointLight;
-		NewChildItem->Postion = Item->GetActorLocation();
+		NewChildItem->Position = Item->GetActorLocation();
 		NewChildItem->Properties.Add("LightColor", Item->GetLightColor().ToString());
 		NewChildItem->Properties.Add("Intensity", FString::Printf(TEXT("%f"), Item->PointLightComponent->Intensity));
 		NewChildItem->Properties.Add("AttenuationRadius", FString::Printf(TEXT("%f"), Item->PointLightComponent->AttenuationRadius));
@@ -289,7 +289,7 @@ bool FOpenWorldHelper::RefreshMapJson(UWorld* InWorld, FString InClassName)
 		NewChildItem->Parent = SpotLightsItem;
 		NewChildItem->Name = Item->GetName();
 		NewChildItem->Type = EIconType::ASpotLight;
-		NewChildItem->Postion = Item->GetActorLocation();
+		NewChildItem->Position = Item->GetActorLocation();
 		NewChildItem->Properties.Add("Rotation", Item->GetActorRotation().ToString());
 		NewChildItem->Properties.Add("LightColor", Item->GetLightColor().ToString());
 		NewChildItem->Properties.Add("Intensity", FString::Printf(TEXT("%f"), Item->SpotLightComponent->Intensity));

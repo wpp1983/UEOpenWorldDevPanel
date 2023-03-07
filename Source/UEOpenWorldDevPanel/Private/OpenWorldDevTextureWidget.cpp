@@ -372,7 +372,7 @@ int32 SOpenWorldDevTextureWidget::PaintActors(const FGeometry& AllottedGeometry,
 			{
 				if(child->CheckBoxState == ECheckBoxState::Checked)
 				{
-					auto pos = child->Postion;
+					auto pos = child->Position;
 					FBox IconBox;
 					child->TryGetBoundingBox(IconBox);
 					FVector2d	WorldPositions = FVector2d(0.0);
