@@ -327,6 +327,9 @@ const FSlateBrush *GetBrushByIconType(EIconType IconType)
 		case EIconType::ButtonIcon : return FUEOpenWorldDevPanelStyle::Get().GetBrush("OpenWorldDevPannle.Boss"); break;
 		// case EIconType::Test1 : return FUEOpenWorldDevPanelStyle::Get().GetBrush("OpenWorldDevPannle.Boss");break;
 		case EIconType::Test2 : return FUEOpenWorldDevPanelStyle::Get().GetBrush("OpenWorldDevPannle.Monster");break;
+		case EIconType::APointLight : return FUEOpenWorldDevPanelStyle::Get().GetBrush("OpenWorldDevPannle.PointLight");break;
+		case EIconType::ASpotLight : return FUEOpenWorldDevPanelStyle::Get().GetBrush("OpenWorldDevPannle.SpotLight");break;
+
 		case EIconType::APostProcessVolume : return nullptr;
 		default:return nullptr;
 	}
