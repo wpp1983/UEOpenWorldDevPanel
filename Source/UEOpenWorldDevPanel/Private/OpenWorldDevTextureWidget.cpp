@@ -406,15 +406,17 @@ int32 SOpenWorldDevTextureWidget::PaintSpotLight(TSharedPtr<FOpenWorldTreeItem> 
 	Points.Add(FVector2d(Pos.X + AttenuationRadius * ABSCosOutConeAngle,Pos.Y + AttenuationRadius * ABSSinOutConeAngle));
 	Points.Add(FVector2d(Pos.X + AttenuationRadius * ABSCosOutConeAngle,Pos.Y - AttenuationRadius * ABSSinOutConeAngle));
 	Points.Add(FVector2d(Pos.X,Pos.Y));
-	DisplayedItems.Add(FDrawIconInfo({Points[0],Points[1],Points[2]},Pos,WorldPositions,Child));
-	float RotateAngle = PI * Rotator.Roll / 180;
+	float RotateAngle = PI * Rotator.Yaw / 180;
 	const FMatrix2x2d RotationMat = FMatrix2x2d(cos( RotateAngle),sin(RotateAngle),-sin(RotateAngle),cos(RotateAngle));
-
 	//translate -> rotate ->translate -> to screen
 	FTransform2d Transform = FTransform2d(RotationMat);
-	Points[1] = WorldToScreen.TransformPoint(FTransform2d(Points[0]).TransformPoint(Transform.TransformPoint( FTransform2d(-Points[0]).TransformPoint(Points[1]))));
-	Points[2] = WorldToScreen.TransformPoint(FTransform2d(Points[0]).TransformPoint(Transform.TransformPoint( FTransform2d(-Points[0]).TransformPoint(Points[2]))));
+	Points[1] = FTransform2d(Points[0]).TransformPoint(Transform.TransformPoint( FTransform2d(-Points[0]).TransformPoint(Points[1])));
+	Points[2] = FTransform2d(Points[0]).TransformPoint(Transform.TransformPoint( FTransform2d(-Points[0]).TransformPoint(Points[2])));
+	DisplayedItems.Add(FDrawIconInfo({Points[0],Points[1],Points[2]},Pos,WorldPositions,Child));
+
 	Points[0] = WorldToScreen.TransformPoint(Points[0]);
+	Points[1] = WorldToScreen.TransformPoint(Points[1]);
+	Points[2] = WorldToScreen.TransformPoint(Points[2]);
 	Points[3] = WorldToScreen.TransformPoint(Points[3]);
 
 	bool bSelected = false;
