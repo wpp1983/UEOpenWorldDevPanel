@@ -47,22 +47,7 @@ TSharedRef< FSlateStyleSet > FUEOpenWorldDevPanelStyle::Create()
 	Style->Set("UEOpenWorldDevPanel.CollectPostProcessVolume", new IMAGE_BRUSH_SVG(TEXT("PlaceholderButtonIcon"), Icon20x20));
 	Style->Set("OpenWorldDevPannle.Monster", new IMAGE_BRUSH(TEXT("Icon128"), Icon20x20));
 	Style->Set("OpenWorldDevPannle.Boss", new IMAGE_BRUSH(TEXT("BlueCycle"), Icon20x20));
-
-
-	const FButtonStyle Button = FButtonStyle()
-			.SetNormal(BOX_BRUSH(TEXT("Icon128"), Icon20x20))
-			.SetHovered(BOX_BRUSH(TEXT("BlueCycle"), Icon20x20))
-			.SetPressed(BOX_BRUSH(TEXT("BlueCycle"), Icon20x20));
-			{
-				Style->Set("OpenWorldDevPannle.Button",Button);
-			}
-			// .SetNormalPadding(FMargin(2, 2, 2, 2))
-			// .SetPressedPadding(FMargin(2, 3, 2, 1))
-			// .SetNormalForeground(InvertedForeground)
-			// .SetPressedForeground(InvertedForeground)
-			// .SetHoveredForeground(InvertedForeground)
-			// .SetDisabledForeground(InvertedForeground);
-	
+	Style->Set("OpenWorldDevPannle.PointLight",new IMAGE_BRUSH(TEXT("PointLight"),Icon20x20));
 	return Style;
 }
 

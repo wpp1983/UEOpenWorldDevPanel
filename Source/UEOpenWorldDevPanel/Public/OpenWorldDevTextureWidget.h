@@ -5,15 +5,18 @@
 struct FDrawIconInfo : public TSharedFromThis<FDrawIconInfo>
 {
 public:
-	FDrawIconInfo(FVector Pos = FVector(0), FVector2d InScreenPosition = FVector2d(0), FBox InWorldIconBound = FBox(), TSharedPtr<FOpenWorldTreeItem> Item = nullptr)
-		:WorldPosition(Pos),ScreenPosition(InScreenPosition),WorldIconBound(InWorldIconBound),ItemPtr(Item)
+	FDrawIconInfo(TArray<FVector2d> InWorldIconBound, FVector Pos = FVector(0), FVector2d InScreenPosition = FVector2d(0), TSharedPtr<FOpenWorldTreeItem> Item = nullptr)
+		:WorldPosition(Pos),ScreenPosition(InScreenPosition),WorldIconBoundPoints(InWorldIconBound),ItemPtr(Item)
 	{
+		IconType = EIconType(ItemPtr->Type);
 	};
 	~FDrawIconInfo(){};
 
 	FVector WorldPosition;
 	FVector2d ScreenPosition;
-	FBox WorldIconBound;
+	TArray<FVector2d> WorldIconBoundPoints;
+	// FBox WorldIconBound;
+	EIconType IconType;
 	TSharedPtr<FOpenWorldTreeItem> ItemPtr;
 };
 
@@ -47,19 +50,19 @@ public:
 	void OnDeleteSelected();
 	FReply CaptureWorldTo2D() const;
 	void OnTreeDataChanged(FString InTag);
-	void MakeElementByType(EIconType Type, FSlateWindowElementList& OutDrawElements, int32 LayerId, const FPaintGeometry WorldImageGeometry,TArray<FVector2D> AxisPoints = {}, ESlateDrawEffect SlateDrawEffect = ESlateDrawEffect::None, FLinearColor Color = FLinearColor::White) const;
 protected:
 	
 	// virtual int32 OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const override;
 	virtual int32 PaintMinimap(const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId) const;
 	virtual int32 PaintActors(const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId) const;
 	virtual int32 PaintPositionStr(const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId) const;
-	virtual void CustomPaint(FString key, EIconType Icon, TArray<FVector2d> WorldPositions);
-	virtual void CustomPaint(FString key, EIconType Icon, FVector2d WorldPositions);
+	virtual int32 PaintPointLight(TSharedPtr<FOpenWorldTreeItem> Child, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId) const;
+	virtual int32 PaintSpotLight(TSharedPtr<FOpenWorldTreeItem> Child, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId) const;
+	virtual int32 PaintVolume(TSharedPtr<FOpenWorldTreeItem> Child, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId) const;
+	virtual int32 PaintDefault(TSharedPtr<FOpenWorldTreeItem> Child, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId) const;
 	void UpdateTransform()const;
 	void CalTopViewOfWorld(FMatrix& OutProjectionMatrix, const FBox& WorldBox, uint32 ViewportWidth, uint32 ViewportHeight) const;
 	void GetSelectedItems(FVector2D InMouseCursorPosWorld);
-	
 	UPackage* CreateNewPackage(FString AssetPath = "/Game/",FString FileName = "BaseMapTexture") const;
 
 	const TSharedRef<FUICommandList> CommandList;
