@@ -367,13 +367,13 @@ int32 SOpenWorldDevTextureWidget::PaintPointLight(TSharedPtr<FOpenWorldTreeItem>
 		if(SelectedItem.ItemPtr == Child && SelectedItem.WorldPosition == pos)
 		{
 			bSelected = true;
-			break;;
+			// break;;
 		}
 	}
 	FLinearColor BrushColor = LightColor;
 	if(bSelected)
 	{
-		BrushColor = FLinearColor::White + LightColor;
+		BrushColor = FLinearColor::Red;
 	}
 	const FSlateBrush *Brush = GetBrushByIconType(EIconType(Child->Type));
 	FSlateDrawElement::MakeBox(
