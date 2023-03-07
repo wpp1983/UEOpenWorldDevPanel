@@ -1,19 +1,19 @@
 {
 	"Tree": [
 		{
-			"CheckBoxState": 0,
+			"CheckBoxState": 1,
 			"Name": "APostProcessVolume",
 			"Type": 0,
-			"Postion": "X=0.000 Y=0.000 Z=0.000",
+			"Position": "X=0.000 Y=0.000 Z=0.000",
 			"Properties":
 			{
 			},
 			"Children": [
 				{
-					"CheckBoxState": 0,
+					"CheckBoxState": 1,
 					"Name": "PostProcessVolume_0",
 					"Type": 1,
-					"Postion": "X=0.000 Y=0.000 Z=0.000",
+					"Position": "X=1080.000 Y=400.000 Z=670.000",
 					"Properties":
 					{
 						"BoundingBox": "X=980.000 Y=300.000 Z=570.000|X=1180.000 Y=500.000 Z=770.000"
@@ -23,19 +23,19 @@
 			]
 		},
 		{
-			"CheckBoxState": 1,
+			"CheckBoxState": 0,
 			"Name": "APointLight",
 			"Type": 0,
-			"Postion": "X=0.000 Y=0.000 Z=0.000",
+			"Position": "X=0.000 Y=0.000 Z=0.000",
 			"Properties":
 			{
 			},
 			"Children": [
 				{
-					"CheckBoxState": 1,
+					"CheckBoxState": 0,
 					"Name": "PointLight_0",
 					"Type": 2,
-					"Postion": "X=0.000 Y=0.000 Z=0.000",
+					"Position": "X=1080.000 Y=400.000 Z=670.000",
 					"Properties":
 					{
 						"LightColor": "(R=1.000000,G=1.000000,B=1.000000,A=1.000000)",
@@ -50,7 +50,7 @@
 			"CheckBoxState": 0,
 			"Name": "ASpotLight",
 			"Type": 0,
-			"Postion": "X=0.000 Y=0.000 Z=0.000",
+			"Position": "X=0.000 Y=0.000 Z=0.000",
 			"Properties":
 			{
 			},
@@ -59,7 +59,7 @@
 					"CheckBoxState": 0,
 					"Name": "SpotLight_0",
 					"Type": 3,
-					"Postion": "X=0.000 Y=0.000 Z=0.000",
+					"Position": "X=2300.000 Y=-510.000 Z=1560.000",
 					"Properties":
 					{
 						"Rotation": "P=-90.000000 Y=0.000000 R=0.000000",
