@@ -110,7 +110,30 @@ struct FOpenWorldTreeItem : public TSharedFromThis<FOpenWorldTreeItem>
 		return false;
 	}
 
+	template <class T>
+	bool TryGetPropertyByName(FString PropertyKey,T &Out)
+	{
+		if (Properties.Contains(PropertyKey))
+		{
+			FString ItemString = Properties[PropertyKey];
+			Out.InitFromString(ItemString);
+			return true;
+		}
+		return false;
+	}
 
+	// float double
+	template <class T>
+	bool TryGetNumericalValueByName(FString PropertyKey,T &Out)
+	{
+		if (Properties.Contains(PropertyKey))
+		{
+			FString ItemString = Properties[PropertyKey];
+			Out = FCString::Atod(*ItemString);
+			return true;
+		}
+		return false;
+	}
 public:
 	TSharedPtr<FOpenWorldTreeItem> Parent;
 	TArray<TSharedPtr<FOpenWorldTreeItem>> Children;

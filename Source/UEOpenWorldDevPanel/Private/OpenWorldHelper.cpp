@@ -290,7 +290,7 @@ bool FOpenWorldHelper::RefreshMapJson(UWorld* InWorld, FString InClassName)
 		NewChildItem->Name = Item->GetName();
 		NewChildItem->Type = EIconType::ASpotLight;
 		NewChildItem->Position = Item->GetActorLocation();
-		NewChildItem->Properties.Add("Rotation", Item->GetActorRotation().ToString());
+		NewChildItem->Properties.Add("Rotation", Item->GetTransform().Rotator().ToString());
 		NewChildItem->Properties.Add("LightColor", Item->GetLightColor().ToString());
 		NewChildItem->Properties.Add("Intensity", FString::Printf(TEXT("%f"), Item->SpotLightComponent->Intensity));
 		NewChildItem->Properties.Add("AttenuationRadius", FString::Printf(TEXT("%f"), Item->SpotLightComponent->AttenuationRadius));
